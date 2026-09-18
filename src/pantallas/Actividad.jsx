@@ -302,6 +302,10 @@ function TarjetaCalendario() {
 export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSalir }) {
   const personas = usePersonas()
 
+  // De entrada solo lo reciente. Lo demás está a un toque, pero no estorbando.
+  const [tope, setTope] = useState(12)
+  const visibles = actividad.slice(0, tope)
+
   return (
     <>
       <header className="px-5 pt-7 pb-4">
@@ -316,7 +320,7 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
           </>
         )}
 
-        {agruparPorDia(actividad).map((grupo) => (
+        {agruparPorDia(visibles).map((grupo) => (
           <div key={grupo.dia} className="flex flex-col gap-3">
             <Separador>{grupo.dia}</Separador>
 
@@ -351,9 +355,19 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
           </div>
         ))}
 
-        {actividad.length >= 40 && (
+        {tope < actividad.length && (
+          <button
+            type="button"
+            onClick={() => setTope((t) => t + 20)}
+            className="cursor-pointer rounded-xl border border-borde bg-white py-2.5 text-xs font-medium text-gris"
+          >
+            Ver más
+          </button>
+        )}
+
+        {tope >= actividad.length && actividad.length >= 40 && (
           <p className="text-center text-[11.5px] text-gris-claro">
-            Se muestran los últimos 40 movimientos.
+            Hasta aquí llega el historial reciente.
           </p>
         )}
 

@@ -25,6 +25,9 @@ function deFila(f) {
     alCalendario: f.al_calendario,
     version: f.version,
     creadoEn: f.creado_en,
+    // El trigger la actualiza en cada cambio, así que en una ficha terminada
+    // es la fecha en que se aprobó.
+    actualizadoEn: f.actualizado_en,
     comentarios: (f.comentarios || [])
       .map((c) => ({
         id: c.id,

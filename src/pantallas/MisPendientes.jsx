@@ -19,9 +19,16 @@ function esHoy(iso) {
 
 export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
   const [filtro, setFiltro] = useState('todos')
+  const [verAnteriores, setVerAnteriores] = useState(false)
 
   const activas = fichas.filter((f) => f.estado !== 'listo')
+
+  // Lo terminado hace semanas no tiene por qué seguir en la pantalla
+  // principal: esta lista es para lo que está vivo.
   const terminadas = fichas.filter((f) => f.estado === 'listo')
+  const deHoy = terminadas.filter((f) => esHoy(f.actualizadoEn || f.creadoEn))
+  const anteriores = terminadas.length - deHoy.length
+  const visiblesTerminadas = verAnteriores ? terminadas : deHoy
 
   const visibles = activas.filter((f) => {
     if (filtro === 'hoy') return esHoy(f.venceEn) || esHoy(f.iniciaEn)
@@ -98,9 +105,14 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
         {terminadas.length > 0 && filtro === 'todos' && (
           <>
             <div className="mt-1.5">
-              <Separador>Finalizados</Separador>
+              <Separador>{verAnteriores ? 'Finalizados' : 'Finalizados hoy'}</Separador>
             </div>
-            {terminadas.map((f) => (
+
+            {visiblesTerminadas.length === 0 && (
+              <p className="px-0.5 text-[13px] text-gris-claro">Nada todavía hoy.</p>
+            )}
+
+            {visiblesTerminadas.map((f) => (
               <button
                 key={f.id}
                 type="button"
@@ -113,6 +125,18 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
                 <span className="text-sm text-gris-claro line-through">{f.titulo}</span>
               </button>
             ))}
+
+            {anteriores > 0 && (
+              <button
+                type="button"
+                onClick={() => setVerAnteriores((v) => !v)}
+                className="cursor-pointer self-start px-0.5 py-1 text-[12.5px] text-gris underline decoration-borde underline-offset-4"
+              >
+                {verAnteriores
+                  ? 'Ocultar los anteriores'
+                  : `Ver ${anteriores} anterior${anteriores === 1 ? '' : 'es'}`}
+              </button>
+            )}
           </>
         )}
       </div>
