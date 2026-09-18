@@ -28,3 +28,6 @@ dist-ssr
 
 # Ajustes locales del editor
 .claude/
+
+# Llaves VAPID (la privada es secreta)
+.vapid.json

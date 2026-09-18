@@ -1,6 +1,16 @@
+import { useEffect, useState } from 'react'
 import { Icono, Interruptor, Separador } from '../ui.jsx'
 import { usePersonas } from '../lib/personas.jsx'
 import { hora } from '../datos.js'
+import { hayBackend } from '../lib/supabase.js'
+import { cargarTokenCalendario } from '../lib/api.js'
+import {
+  activarPush,
+  desactivarPush,
+  esIOSSinInstalar,
+  estadoPush,
+  soportaPush,
+} from '../lib/push.js'
 
 const ICONOS = {
   inicio: { Comp: Icono.Play, fondo: 'bg-proceso-fondo', color: 'text-proceso-texto' },
@@ -9,6 +19,21 @@ const ICONOS = {
   listo: { Comp: Icono.Palomita, fondo: 'bg-listo-fondo', color: 'text-listo' },
   nueva: { Comp: Icono.Mas, fondo: 'bg-borde-suave', color: 'text-pendiente-texto' },
 }
+
+const AJUSTES = [
+  { id: 'asignacion', titulo: 'Me asignan un pendiente' },
+  { id: 'comentario', titulo: 'Comentario nuevo' },
+  {
+    id: 'vencimiento',
+    titulo: 'Recordatorio antes de vencer',
+    pie: '24 h antes y una hora antes',
+  },
+  {
+    id: 'silencio',
+    titulo: 'No molestar 20:00 – 8:00',
+    pie: 'Se acumulan y llegan por la mañana',
+  },
+]
 
 function fechaCorta(iso) {
   const d = new Date(iso)
@@ -19,6 +44,165 @@ function fechaCorta(iso) {
   if (d.toDateString() === ayer.toDateString()) return `Ayer ${hora(iso)}`
   return `${d.getDate()}/${d.getMonth() + 1} ${hora(iso)}`
 }
+
+/* -------------------------------------------------- notificaciones push */
+
+function TarjetaPush({ perfilId }) {
+  const [estado, setEstado] = useState('cargando')
+  const [error, setError] = useState(null)
+  const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    estadoPush().then(setEstado)
+  }, [])
+
+  async function alternar() {
+    setError(null)
+    setOcupado(true)
+    try {
+      if (estado === 'activo') {
+        await desactivarPush()
+      } else {
+        await activarPush(perfilId)
+      }
+      setEstado(await estadoPush())
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  if (!soportaPush()) {
+    return (
+      <div className="rounded-2xl border border-dashed border-borde px-4 py-3.5 text-xs leading-relaxed text-gris">
+        Este navegador no admite notificaciones.
+      </div>
+    )
+  }
+
+  // En iPhone, el push solo existe si la app está en la pantalla de inicio
+  if (esIOSSinInstalar()) {
+    return (
+      <div className="flex items-start gap-3 rounded-2xl bg-proceso-fondo px-4 py-3.5">
+        <Icono.Campana tam={17} className="mt-0.5 shrink-0 text-proceso-texto" />
+        <div>
+          <div className="text-[13px] font-semibold text-proceso-texto">
+            Falta instalar la app
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-proceso-texto">
+            En iPhone las notificaciones solo funcionan con la app en la pantalla de inicio. Toca
+            Compartir y luego «Añadir a pantalla de inicio», y vuelve a entrar desde ahí.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const activo = estado === 'activo'
+
+  return (
+    <div className="rounded-2xl border border-borde bg-white px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <div className="grow">
+          <div className="text-[13.5px] font-medium">Notificaciones en este dispositivo</div>
+          <p className="mt-0.5 text-[11.5px] text-gris-claro">
+            {estado === 'cargando'
+              ? 'Revisando…'
+              : activo
+                ? 'Activas: los avisos llegan aunque la app esté cerrada'
+                : 'Apagadas'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={alternar}
+          disabled={ocupado || estado === 'cargando' || estado === 'bloqueado'}
+          className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-xs font-medium disabled:opacity-40 ${
+            activo ? 'border border-borde bg-white text-gris' : 'bg-tinta text-white'
+          }`}
+        >
+          {ocupado ? '…' : activo ? 'Apagar' : 'Activar'}
+        </button>
+      </div>
+
+      {estado === 'bloqueado' && (
+        <p className="mt-2.5 text-[11.5px] leading-relaxed text-proceso-texto">
+          Las bloqueaste antes. Hay que volver a permitirlas desde los ajustes del navegador para
+          este sitio.
+        </p>
+      )}
+
+      {error && (
+        <p className="mt-2.5 text-[11.5px] leading-relaxed text-proceso-texto">{error}</p>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------ calendario */
+
+function TarjetaCalendario() {
+  const [token, setToken] = useState(null)
+  const [copiado, setCopiado] = useState(false)
+
+  useEffect(() => {
+    if (!hayBackend) return
+    cargarTokenCalendario().then(setToken).catch(() => {})
+  }, [])
+
+  if (!token) return null
+
+  const url = `${window.location.origin}/api/calendario?t=${token}`
+  // webcal:// hace que el teléfono lo abra en Calendario en vez del navegador
+  const webcal = url.replace(/^https?:/, 'webcal:')
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      setCopiado(false)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-borde bg-white px-4 py-3.5">
+      <div className="flex items-start gap-3">
+        <Icono.Calendario tam={17} className="mt-0.5 shrink-0 text-gris" />
+        <div className="grow">
+          <div className="text-[13.5px] font-medium">Tu calendario</div>
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-gris-claro">
+            Te suscribes una vez y de ahí en adelante tus juntas y fechas de entrega llegan solas.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <a
+          href={webcal}
+          className="grow rounded-xl bg-tinta py-2.5 text-center text-xs font-medium text-white no-underline"
+        >
+          Suscribirme
+        </a>
+        <button
+          type="button"
+          onClick={copiar}
+          className="shrink-0 cursor-pointer rounded-xl border border-borde px-4 py-2.5 text-xs font-medium text-gris"
+        >
+          {copiado ? 'Copiada' : 'Copiar URL'}
+        </button>
+      </div>
+
+      <p className="mt-2.5 text-[11px] leading-relaxed text-gris-claro">
+        Esta URL es privada: quien la tenga puede ver tus pendientes.
+      </p>
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------- pantalla */
 
 export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSalir }) {
   const personas = usePersonas()
@@ -54,7 +238,7 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
                 <div className="grow pb-1.5">
                   <p className="text-[13.5px] leading-normal">
                     <span className="font-semibold">
-                      {a.autorId === yo.id ? 'Tú' : autor?.nombre}
+                      {a.autorId === yo.id ? 'Tú' : autor?.nombre || 'Alguien'}
                     </span>{' '}
                     {a.texto}
                   </p>
@@ -67,25 +251,14 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
 
         <Separador>Avisos</Separador>
 
+        {hayBackend && <TarjetaPush perfilId={yo.id} />}
+
         <div className="rounded-2xl border border-borde bg-white px-4">
-          {[
-            { id: 'asignacion', titulo: 'Me asignan un pendiente' },
-            { id: 'comentario', titulo: 'Comentario nuevo' },
-            {
-              id: 'vencimiento',
-              titulo: 'Recordatorio antes de vencer',
-              pie: '24 h antes y a las 9:00 del día',
-            },
-            {
-              id: 'silencio',
-              titulo: 'No molestar 20:00 – 8:00',
-              pie: 'Se acumulan y llegan por la mañana',
-            },
-          ].map((av, i, todos) => (
+          {AJUSTES.map((av, i) => (
             <div
               key={av.id}
               className={`flex items-center gap-3 py-3.5 ${
-                i < todos.length - 1 ? 'border-b border-borde-suave' : ''
+                i < AJUSTES.length - 1 ? 'border-b border-borde-suave' : ''
               }`}
             >
               <div className="grow">
@@ -93,7 +266,7 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
                 {av.pie && <div className="mt-0.5 text-[11.5px] text-gris-claro">{av.pie}</div>}
               </div>
               <Interruptor
-                activo={avisos[av.id]}
+                activo={Boolean(avisos[av.id])}
                 onChange={(v) => onCambiarAviso(av.id, v)}
                 etiqueta={av.titulo}
               />
@@ -101,13 +274,9 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
           ))}
         </div>
 
-        <div className="flex items-start gap-3 rounded-2xl bg-borde-suave px-4 py-3.5">
-          <Icono.Calendario tam={17} className="mt-0.5 shrink-0 text-pendiente-texto" />
-          <p className="text-xs leading-relaxed text-pendiente-texto">
-            Te suscribes al calendario una sola vez desde Ajustes. Después, cada junta y cada fecha
-            de entrega llega sola.
-          </p>
-        </div>
+        <Separador>Calendario</Separador>
+
+        <TarjetaCalendario />
 
         {onSalir && (
           <button

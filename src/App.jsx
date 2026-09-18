@@ -42,6 +42,34 @@ export default function App() {
   const { listo, error, personas, fichas, actividad, cambiarEstado, comentar, crear } =
     useDatos(miId, hayBackend ? sesion?.user : null)
 
+  // Las preferencias de aviso viven en la base: así valen en cualquier
+  // dispositivo donde entres, no solo en este.
+  useEffect(() => {
+    if (!hayBackend || !miId) return
+    api
+      .cargarPreferencias()
+      .then((p) => {
+        if (!p) return
+        setAvisos({
+          asignacion: p.asignacion,
+          comentario: p.comentario,
+          vencimiento: p.vencimiento,
+          silencio: p.silencio,
+        })
+      })
+      .catch(() => {})
+  }, [miId])
+
+  function cambiarAviso(llave, valor) {
+    setAvisos((prev) => ({ ...prev, [llave]: valor }))
+    if (hayBackend && miId) {
+      api.guardarPreferencia(miId, llave, valor).catch(() => {
+        // Si no se pudo guardar, se revierte para no mentirle al usuario
+        setAvisos((prev) => ({ ...prev, [llave]: !valor }))
+      })
+    }
+  }
+
   // El cronómetro de "en proceso" se refresca solo
   useEffect(() => {
     const id = setInterval(() => setAhora(Date.now()), 30000)
@@ -157,7 +185,7 @@ export default function App() {
             actividad={actividad}
             yo={yo}
             avisos={avisos}
-            onCambiarAviso={(id, v) => setAvisos((p) => ({ ...p, [id]: v }))}
+            onCambiarAviso={cambiarAviso}
             onSalir={hayBackend ? () => api.salir() : null}
           />
         )}

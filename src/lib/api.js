@@ -140,6 +140,25 @@ export async function cargarActividad(limite = 40) {
   }))
 }
 
+/** La URL secreta a la que se suscribe el calendario del teléfono. */
+export async function cargarTokenCalendario() {
+  const { data } = await supabase.from('tokens_calendario').select('token').maybeSingle()
+  return data?.token || null
+}
+
+export async function cargarPreferencias() {
+  const { data } = await supabase.from('preferencias_aviso').select('*').maybeSingle()
+  return data || null
+}
+
+export async function guardarPreferencia(perfilId, llave, valor) {
+  revisar(
+    await supabase
+      .from('preferencias_aviso')
+      .upsert({ perfil_id: perfilId, [llave]: valor }, { onConflict: 'perfil_id' }),
+  )
+}
+
 /* ------------------------------------------------------------ escritura */
 
 export async function crearFicha(datos) {

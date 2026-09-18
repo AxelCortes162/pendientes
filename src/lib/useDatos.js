@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as api from './api.js'
+import { avisar } from './push.js'
 import { hayBackend } from './supabase.js'
 import { FICHAS_INICIALES, PERSONAS } from '../datos.js'
 
@@ -62,6 +63,10 @@ export function useDatos(miId, usuario) {
   const usuarioRef = useRef(usuario)
   usuarioRef.current = usuario
 
+  // Para consultar el estado anterior de una ficha sin volver a suscribirse
+  const fichasRef = useRef(fichas)
+  fichasRef.current = fichas
+
   const recargar = useCallback(async () => {
     if (!hayBackend || !miId || recargando.current) return
     recargando.current = true
@@ -107,8 +112,17 @@ export function useDatos(miId, usuario) {
     async (id, estado) => {
       if (hayBackend) {
         try {
+          const anterior = fichasRef.current.find((f) => f.id === id)
           const actualizada = await api.cambiarEstado(id, estado)
           setFichas((prev) => prev.map((f) => (f.id === id ? actualizada : f)))
+
+          // Volver de revisión a proceso no es "empezar": es pedir cambios
+          const tipo =
+            estado === 'proceso' && anterior?.estado === 'revision'
+              ? 'cambios'
+              : TIPO_EVENTO[estado]
+          avisar(id, tipo)
+
           recargar() // trae la bitácora que escribió el trigger
         } catch (e) {
           setError(e.message)
@@ -149,6 +163,7 @@ export function useDatos(miId, usuario) {
               f.id === fichaId ? { ...f, comentarios: [...f.comentarios, nuevo] } : f,
             ),
           )
+          avisar(fichaId, 'comentario')
           recargar()
         } catch (e) {
           setError(e.message)
@@ -181,6 +196,7 @@ export function useDatos(miId, usuario) {
         try {
           const nueva = await api.crearFicha(datos)
           setFichas((prev) => [nueva, ...prev])
+          avisar(nueva.id, 'nueva')
           recargar()
         } catch (e) {
           setError(e.message)

@@ -1,7 +1,7 @@
 # Pendientes
 
-App de pendientes, juntas y revisiones entre dos personas. React + Vite, pensada
-para instalarse en la pantalla de inicio (PWA), tanto en iPhone como en Android.
+App de pendientes, juntas y revisiones entre dos personas. React + Vite,
+instalable en la pantalla de inicio (PWA), con Supabase detrás.
 
 ## Correr el proyecto
 
@@ -10,27 +10,8 @@ npm install
 npm run dev
 ```
 
-Abre <http://localhost:5173>. Ahora mismo corre con datos de ejemplo en memoria:
-no hace falta base de datos para verla funcionar.
-
-Abajo de todo hay una barra **Demo · ver como** para cambiar entre Axel y Daniel
-y ver las dos caras de la app. Se quita cuando exista el login de verdad.
-
-## Cómo está armado
-
-```
-src/
-  datos.js            Datos de ejemplo y formato de fechas/duraciones
-  ui.jsx              Iconos, chips, avatares, la barra de abajo
-  componentes/        Piezas que se repiten entre pantallas
-  pantallas/          Una pantalla por archivo
-  lib/ics.js          Generación de calendario (iCalendar / .ics)
-supabase/
-  schema.sql          Tablas, triggers y reglas de acceso
-```
-
-Los colores y las tipografías están como variables en `src/index.css`, dentro del
-bloque `@theme` de Tailwind. Cambiar el acento se hace ahí, en un solo lugar.
+Sin `.env.local`, la app arranca con datos de ejemplo y una barra abajo para
+cambiar de persona. No hace falta base de datos para verla funcionar.
 
 ## El flujo
 
@@ -42,7 +23,8 @@ Pendiente  →  En proceso  →  En revisión  →  Finalizado
 la bandeja del otro con *Aprobar* o *Pedir cambios*.
 
 El cronómetro arranca al pasar a **En proceso** y para al enviar a revisión.
-Nadie anota horas a mano.
+No se anotan horas a mano: lo hace un trigger de Postgres, así que el tiempo no
+se pierde aunque se cierre el navegador a media tarea.
 
 ## Dos tipos de ficha
 
@@ -52,67 +34,119 @@ Nadie anota horas a mano.
 | Estados | los cuatro | no aplica, solo llega |
 | En el calendario | evento de día completo | franja real |
 
-## Lo que falta
-
-### 1. Conectar Supabase
-
-`supabase/schema.sql` se pega en el SQL Editor del proyecto y se ejecuta una vez.
-Después hay que cambiar `src/datos.js` por llamadas a `@supabase/supabase-js`
-(ya está instalado). Las claves van en `.env.local`:
+## Cómo está armado
 
 ```
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=xxxx
+src/
+  datos.js            Datos de ejemplo y formato de fechas/duraciones
+  ui.jsx              Iconos, chips, avatares, la barra de abajo
+  componentes/        Piezas que se repiten entre pantallas
+  pantallas/          Una pantalla por archivo
+  lib/
+    supabase.js       Cliente; decide si hay backend o no
+    api.js            Todo lo que habla con Supabase
+    useDatos.js       Una puerta a los datos, con dos fuentes detrás
+    push.js           Permiso, suscripción y disparo de notificaciones
+    ics.js            Generación de calendario (iCalendar)
+    personas.jsx      Contexto con quiénes son los del espacio
+api/                  Funciones de servidor (Vercel)
+  notificar.js        Manda el push a la otra persona
+  calendario.js       Sirve el .ics al que se suscribe el teléfono
+  recordatorios.js    Lo llama pg_cron cada hora
+public/sw.js          Service worker: solo push, no cachea nada
+supabase/
+  schema.sql          Base: tablas, triggers y políticas
+  02-push-y-calendario.sql
 ```
 
-### 2. Notificaciones push
+Los colores y tipografías son variables en `src/index.css`, dentro del bloque
+`@theme` de Tailwind. Cambiar el acento se hace ahí, en un solo lugar.
 
-Service worker + Web Push con VAPID. En Android funciona sin más; **en iPhone
-solo funciona si la app está agregada a la pantalla de inicio** (requisito de
-Apple desde iOS 16.4).
+## Variables de entorno
 
-### 3. Calendario suscrito
+**En `.env.local`** (y en Vercel, para que el build las incruste):
 
-`src/lib/ics.js` ya genera el archivo; el botón *Al calendario* descarga un .ics
-suelto. Falta el endpoint de suscripción: una función edge que sirva
-`/cal/<token>.ics` con `Content-Type: text/calendar`. El token sale de la tabla
-`tokens_calendario`.
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+VITE_VAPID_PUBLIC_KEY
+```
 
-Apple refresca el calendario suscrito cada ~15 min. Google puede tardar hasta
-24 h: es limitación de Google, no del archivo.
+**Solo en Vercel**, nunca en el repo ni en el navegador:
+
+```
+SUPABASE_SERVICE_ROLE_KEY    Se salta RLS; la usan las funciones de api/
+VAPID_PRIVATE_KEY            Firma los push (está en .vapid.json, ignorado por Git)
+VAPID_CONTACTO               mailto:tu@correo.com
+SECRETO_CRON                 Cualquier cadena larga; protege /api/recordatorios
+```
+
+Las `VITE_*` se incrustan al compilar, así que después de agregarlas hay que
+volver a desplegar.
+
+Para generar llaves VAPID nuevas:
+
+```bash
+node -e "console.log(require('web-push').generateVAPIDKeys())"
+```
+
+## Notificaciones push
+
+El navegador se suscribe (`src/lib/push.js`) y guarda el endpoint en
+`suscripciones_push`. Cuando alguien mueve algo, el cliente llama a
+`/api/notificar`, que verifica el token contra Supabase, busca a la otra
+persona y le manda el aviso.
+
+Las suscripciones muertas (404/410) se borran solas: pasa cuando alguien
+desinstala la app o limpia los datos del navegador.
+
+**En iPhone solo funcionan con la app agregada a la pantalla de inicio.** Es
+requisito de Apple desde iOS 16.4; la app detecta ese caso y lo explica en
+lugar de fallar en silencio.
+
+## Calendario suscrito
+
+Cada persona tiene una URL secreta en `tokens_calendario`. Se suscribe una vez
+desde la pantalla de Actividad y de ahí en adelante sus juntas y fechas de
+entrega llegan solas.
+
+Apple refresca cada ~15 min. Google puede tardar hasta 24 h: es limitación de
+Google, no del archivo.
+
+## Recordatorios
+
+`/api/recordatorios` corre cada hora desde `pg_cron` y avisa de:
+
+- pendientes que vencen en 24 h
+- pendientes que vencen en una hora
+- juntas que empiezan en menos de una hora
+
+Cada ventana dura una hora exacta y el cron corre en punto, así que nada se
+avisa dos veces sin necesidad de guardar qué ya se mandó.
+
+El SQL para programarlo está comentado al final de
+`supabase/02-push-y-calendario.sql`.
 
 ## Publicar
 
-La app es un sitio estático: `npm run build` deja todo en `dist/`.
+Cada `git push` a `main` republica en Vercel. Para un despliegue suelto:
 
 ```bash
-npx vercel
+npx vercel --prod
 ```
-
-La primera vez pide iniciar sesión y hace algunas preguntas; los valores por
-defecto sirven (Vite viene detectado). Luego `npx vercel --prod` para publicar.
-
-**Las variables de entorno hay que darlas también en Vercel**, en Settings →
-Environment Variables: `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. Vite las
-incrusta al compilar, así que sin ellas el sitio publicado arranca en modo
-demo. Después de agregarlas hay que volver a desplegar.
 
 ## Instalarla en el teléfono
 
-Hace falta HTTPS, así que solo funciona con la app ya publicada, no con
-`localhost`.
+Hace falta HTTPS, así que solo con la app publicada.
 
-- **iPhone:** abrir en Safari → Compartir → *Añadir a pantalla de inicio*.
-  Es obligatorio para que las notificaciones push funcionen (requisito de
-  Apple desde iOS 16.4).
-- **Android:** Chrome ofrece *Instalar aplicación* solo.
+- **iPhone:** Safari → Compartir → *Añadir a pantalla de inicio*
+- **Android:** Chrome ofrece *Instalar aplicación* solo
 
 ## Íconos
-
-`scripts/generar-iconos.mjs` genera los PNG desde el mismo dibujo del SVG:
 
 ```bash
 node scripts/generar-iconos.mjs
 ```
 
-Se corre a mano cuando cambie el ícono, no en cada build.
+Genera los PNG desde el mismo dibujo del SVG. Se corre a mano cuando cambie el
+ícono, no en cada build.
