@@ -28,10 +28,33 @@ export function esIOSSinInstalar() {
   return esIOS && !instalada
 }
 
-/** La clave VAPID viaja en base64url; el navegador la quiere en bytes. */
+/**
+ * La clave VAPID viaja en base64url; el navegador la quiere en bytes.
+ *
+ * Se valida antes de decodificar porque el error de atob no dice nada útil.
+ * El caso real que nos pasó: pegar en la variable de entorno los puntitos con
+ * los que el panel de Vercel oculta el valor, en vez del valor.
+ */
 function aBytes(base64url) {
-  const relleno = '='.repeat((4 - (base64url.length % 4)) % 4)
-  const base64 = (base64url + relleno).replace(/-/g, '+').replace(/_/g, '/')
+  const limpio = String(base64url ?? '').trim()
+
+  if (!/^[A-Za-z0-9_-]+$/.test(limpio)) {
+    throw new Error(
+      'La clave VAPID pública tiene caracteres que no son válidos. ' +
+        'Revisa VITE_VAPID_PUBLIC_KEY: seguro se copió el valor oculto en vez del real.',
+    )
+  }
+
+  // Una clave P-256 sin comprimir son 65 bytes: 87 caracteres en base64url
+  if (limpio.length < 80) {
+    throw new Error(
+      `La clave VAPID pública mide ${limpio.length} caracteres y deberían ser 87. ` +
+        'Está incompleta o es la privada.',
+    )
+  }
+
+  const relleno = '='.repeat((4 - (limpio.length % 4)) % 4)
+  const base64 = (limpio + relleno).replace(/-/g, '+').replace(/_/g, '/')
   const crudo = atob(base64)
   const bytes = new Uint8Array(crudo.length)
   for (let i = 0; i < crudo.length; i++) bytes[i] = crudo.charCodeAt(i)
