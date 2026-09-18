@@ -96,12 +96,19 @@ export default async function handler(req, res) {
         if (pref?.vencimiento === false) continue
         if (pref?.silencio && enHorarioDeSilencio(zonaDe[destinoId])) continue
 
-        const { enviados } = await enviarA(admin, destinoId, {
-          titulo,
-          cuerpo: ficha.titulo,
-          tag: `recordatorio-${ficha.id}`,
-          url: '/',
-        })
+        const { enviados } = await enviarA(
+          admin,
+          destinoId,
+          {
+            titulo,
+            cuerpo: ficha.titulo,
+            tag: `recordatorio-${ficha.id}`,
+            url: '/',
+          },
+          // Un recordatorio viejo es peor que ninguno: "vence en una hora"
+          // no sirve de nada al día siguiente.
+          { ttl: 7200 },
+        )
         if (enviados) avisados++
       }
     }

@@ -79,7 +79,13 @@ export function enHorarioDeSilencio(zona = 'America/Mexico_City') {
  * Las suscripciones muertas (404/410) se borran: pasa cuando alguien
  * desinstala la app o limpia los datos del navegador.
  */
-export async function enviarA(admin, perfilId, carga) {
+/** El `topic` de FCM tiene que ser base64url y caber en 32 caracteres. */
+function aTema(tag) {
+  if (!tag) return undefined
+  return String(tag).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32) || undefined
+}
+
+export async function enviarA(admin, perfilId, carga, opciones = {}) {
   const { data: suscripciones, error } = await admin
     .from('suscripciones_push')
     .select('id, endpoint, p256dh, auth')
@@ -92,6 +98,20 @@ export async function enviarA(admin, perfilId, carga) {
 
   const push = configurarWebPush()
   const cuerpo = JSON.stringify(carga)
+
+  const envio = {
+    // 'high' le pide al servicio que despierte el teléfono aunque esté en
+    // reposo. Sin esto, Android puede guardar el aviso hasta que alguien
+    // vuelva a abrir el navegador, que es justo lo que no queremos.
+    urgency: opciones.urgencia || 'high',
+    // Un día. Pasado eso el aviso ya no sirve de nada: mejor que se pierda
+    // a que llegue "vence en una hora" tres días tarde.
+    TTL: opciones.ttl ?? 86400,
+    // Con el mismo topic, un aviso nuevo de la misma ficha reemplaza al que
+    // estuviera esperando en cola en vez de acumularse.
+    topic: aTema(carga.tag),
+  }
+
   let enviados = 0
   const muertas = []
   const errores = []
@@ -102,6 +122,7 @@ export async function enviarA(admin, perfilId, carga) {
         await push.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
           cuerpo,
+          envio,
         )
         enviados++
       } catch (e) {
