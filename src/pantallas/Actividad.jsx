@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Icono, Interruptor, Separador } from '../ui.jsx'
 import { usePersonas } from '../lib/personas.jsx'
-import { hora } from '../datos.js'
+import { diaLargo, hora } from '../datos.js'
 import { hayBackend } from '../lib/supabase.js'
 import { cargarTokenCalendario } from '../lib/api.js'
 import {
@@ -36,14 +36,29 @@ const AJUSTES = [
   },
 ]
 
-function fechaCorta(iso) {
+function etiquetaDia(iso) {
   const d = new Date(iso)
   const hoy = new Date()
-  if (d.toDateString() === hoy.toDateString()) return hora(iso)
+  if (d.toDateString() === hoy.toDateString()) return 'Hoy'
   const ayer = new Date(hoy)
   ayer.setDate(ayer.getDate() - 1)
-  if (d.toDateString() === ayer.toDateString()) return `Ayer ${hora(iso)}`
-  return `${d.getDate()}/${d.getMonth() + 1} ${hora(iso)}`
+  if (d.toDateString() === ayer.toDateString()) return 'Ayer'
+  return diaLargo(iso)
+}
+
+/**
+ * Parte la lista en días. Así la hora de cada entrada basta y no hay que
+ * repetir la fecha en cada renglón.
+ */
+function agruparPorDia(lista) {
+  const grupos = []
+  for (const entrada of lista) {
+    const dia = etiquetaDia(entrada.creadoEn)
+    const ultimo = grupos.at(-1)
+    if (ultimo?.dia === dia) ultimo.entradas.push(entrada)
+    else grupos.push({ dia, entradas: [entrada] })
+  }
+  return grupos
 }
 
 /* -------------------------------------------------- notificaciones push */
@@ -294,40 +309,53 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
       </header>
 
       <div className="flex grow flex-col gap-4 overflow-y-auto px-5 pb-4">
-        <Separador>Lo que ha pasado</Separador>
-
-        <div className="flex flex-col">
-          {actividad.length === 0 && (
+        {actividad.length === 0 && (
+          <>
+            <Separador>Lo que ha pasado</Separador>
             <p className="text-[13px] text-gris-claro">Nada todavía.</p>
-          )}
+          </>
+        )}
 
-          {actividad.map((a, i) => {
-            const cfg = ICONOS[a.tipo] || ICONOS.nueva
-            const esUltimo = i === actividad.length - 1
-            const autor = personas[a.autorId]
-            return (
-              <div key={a.id} className="flex gap-3.5 py-2.5">
-                <div className="flex shrink-0 flex-col items-center">
-                  <span
-                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${cfg.fondo} ${cfg.color}`}
-                  >
-                    <cfg.Comp tam={14} grosor={2} />
-                  </span>
-                  {!esUltimo && <span className="mt-1.5 w-px grow bg-borde" />}
-                </div>
-                <div className="grow pb-1.5">
-                  <p className="text-[13.5px] leading-normal">
-                    <span className="font-semibold">
-                      {a.autorId === yo.id ? 'Tú' : autor?.nombre || 'Alguien'}
-                    </span>{' '}
-                    {a.texto}
-                  </p>
-                  <p className="mt-0.5 text-[11.5px] text-gris-claro">{fechaCorta(a.creadoEn)}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        {agruparPorDia(actividad).map((grupo) => (
+          <div key={grupo.dia} className="flex flex-col gap-3">
+            <Separador>{grupo.dia}</Separador>
+
+            <div className="flex flex-col">
+              {grupo.entradas.map((a, i) => {
+                const cfg = ICONOS[a.tipo] || ICONOS.nueva
+                const esUltimo = i === grupo.entradas.length - 1
+                const autor = personas[a.autorId]
+                return (
+                  <div key={a.id} className="flex gap-3.5 py-2.5">
+                    <div className="flex shrink-0 flex-col items-center">
+                      <span
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${cfg.fondo} ${cfg.color}`}
+                      >
+                        <cfg.Comp tam={14} grosor={2} />
+                      </span>
+                      {!esUltimo && <span className="mt-1.5 w-px grow bg-borde" />}
+                    </div>
+                    <div className="grow pb-1.5">
+                      <p className="text-[13.5px] leading-normal">
+                        <span className="font-semibold">
+                          {a.autorId === yo.id ? 'Tú' : autor?.nombre || 'Alguien'}
+                        </span>{' '}
+                        {a.texto}
+                      </p>
+                      <p className="mt-0.5 text-[11.5px] text-gris-claro">{hora(a.creadoEn)}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+
+        {actividad.length >= 40 && (
+          <p className="text-center text-[11.5px] text-gris-claro">
+            Se muestran los últimos 40 movimientos.
+          </p>
+        )}
 
         <Separador>Avisos</Separador>
 
