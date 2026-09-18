@@ -150,6 +150,8 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
           <Fila etiqueta="Día">
             <input
               type="date"
+              id="dia"
+              name="dia"
               value={dia}
               onChange={(e) => setDia(e.target.value)}
               aria-label="Día"
@@ -162,6 +164,8 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
               <div className="flex items-center gap-2">
                 <input
                   type="time"
+                  id="hora-inicio"
+                  name="hora-inicio"
                   value={inicio}
                   onChange={(e) => setInicio(e.target.value)}
                   aria-label="Hora de inicio"
@@ -170,6 +174,8 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
                 <span className="text-xs text-gris-claro">a</span>
                 <input
                   type="time"
+                  id="hora-fin"
+                  name="hora-fin"
                   value={fin}
                   onChange={(e) => setFin(e.target.value)}
                   aria-label="Hora de fin"
@@ -181,6 +187,8 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
             <Fila etiqueta="Hora límite">
               <input
                 type="time"
+                id="hora-limite"
+                name="hora-limite"
                 value={limite}
                 onChange={(e) => setLimite(e.target.value)}
                 aria-label="Hora límite"

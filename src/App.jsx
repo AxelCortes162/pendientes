@@ -11,6 +11,22 @@ import Equipo from './pantallas/Equipo.jsx'
 import Actividad from './pantallas/Actividad.jsx'
 import Nuevo from './pantallas/Nuevo.jsx'
 
+/**
+ * Tiene que vivir FUERA de App.
+ *
+ * Definido adentro, se creaba una función nueva en cada render y React lo
+ * trataba como un componente distinto: desmontaba y volvía a montar todo el
+ * árbol, borrando lo que hubiera escrito en un formulario. Como el reloj
+ * re-renderiza cada 30 segundos, el texto se perdía solo.
+ */
+function Marco({ children }) {
+  return (
+    <div className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden bg-papel">
+      {children}
+    </div>
+  )
+}
+
 export default function App() {
   const [sesion, setSesion] = useState(null)
   const [revisandoSesion, setRevisandoSesion] = useState(hayBackend)
@@ -128,12 +144,6 @@ export default function App() {
     setFichaId(id)
     setVista('detalle')
   }
-
-  const Marco = ({ children }) => (
-    <div className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden bg-papel">
-      {children}
-    </div>
-  )
 
   if (revisandoSesion) {
     return <Marco />
