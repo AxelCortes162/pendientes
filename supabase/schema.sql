@@ -149,9 +149,26 @@ create trigger tg_cronometro
   before update on fichas
   for each row execute function fn_cronometro();
 
+-- Cada perfil nuevo estrena su token de calendario y sus preferencias.
+create or replace function fn_ajustes_perfil()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into tokens_calendario (perfil_id) values (new.id) on conflict do nothing;
+  insert into preferencias_aviso (perfil_id) values (new.id) on conflict do nothing;
+  return new;
+end $$;
+
+create trigger tg_ajustes_perfil
+  after insert on perfiles
+  for each row execute function fn_ajustes_perfil();
+
 -- Todo cambio de estado deja rastro en la bitácora.
+--
+-- SECURITY DEFINER a propósito: la bitácora la escribe el sistema, no la
+-- persona. Sin esto el trigger chocaría con las políticas de `actividad`, que
+-- no permiten escribir, y tumbaría la operación entera.
 create or replace function fn_bitacora_estado()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql security definer set search_path = public as $$
 declare
   verbo text;
 begin
@@ -186,7 +203,7 @@ create trigger tg_bitacora_estado
   for each row execute function fn_bitacora_estado();
 
 create or replace function fn_bitacora_comentario()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql security definer set search_path = public as $$
 declare
   t text;
 begin
@@ -236,30 +253,35 @@ create policy "edito mis fichas" on fichas
 create policy "borro lo que creé" on fichas
   for delete using (auth.uid() = creador_id);
 
-create policy "veo comentarios de mis fichas" on comentarios
-  for select using (
-    exists (
-      select 1 from fichas f
-      where f.id = ficha_id and auth.uid() in (f.creador_id, f.asignado_id)
-    )
+-- ¿Soy parte de esta ficha? SECURITY DEFINER para que la consulta a `fichas`
+-- no vuelva a pasar por RLS dentro de otra política: anidado así, el EXISTS
+-- no resuelve como uno espera y termina rechazando inserts válidos.
+-- No filtra nada: solo responde sí o no.
+create or replace function fn_participo_en(ficha uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (
+    select 1 from fichas f
+    where f.id = ficha
+      and (f.creador_id = auth.uid() or f.asignado_id = auth.uid())
   );
+$$;
+
+revoke all on function fn_participo_en(uuid) from public;
+grant execute on function fn_participo_en(uuid) to authenticated;
+
+create policy "veo comentarios de mis fichas" on comentarios
+  for select using (fn_participo_en(ficha_id));
 
 create policy "comento en mis fichas" on comentarios
-  for insert with check (
-    auth.uid() = autor_id
-    and exists (
-      select 1 from fichas f
-      where f.id = ficha_id and auth.uid() in (f.creador_id, f.asignado_id)
-    )
-  );
+  for insert with check (auth.uid() = autor_id and fn_participo_en(ficha_id));
 
+create policy "borro mis comentarios" on comentarios
+  for delete using (auth.uid() = autor_id);
+
+-- `actividad` se lee pero no se escribe: las entradas solo las pone el
+-- trigger, así que nadie puede inventar historial.
 create policy "veo la bitácora de mis fichas" on actividad
-  for select using (
-    exists (
-      select 1 from fichas f
-      where f.id = ficha_id and auth.uid() in (f.creador_id, f.asignado_id)
-    )
-  );
+  for select using (fn_participo_en(ficha_id));
 
 create policy "manejo mis suscripciones" on suscripciones_push
   for all using (auth.uid() = perfil_id) with check (auth.uid() = perfil_id);
