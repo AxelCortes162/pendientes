@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Pendientes — Guía rápida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: letter; margin: 0; }
+
+  :root {
+    --papel: #F7F6F2;
+    --tinta: #171614;
+    --tinta-suave: #3B3830;
+    --gris: #6B6862;
+    --gris-claro: #8A8578;
+    --borde: #E5E2DA;
+    --borde-suave: #EFEDE6;
+    --pendiente: #8A8578;
+    --proceso: #B4550A;
+    --proceso-texto: #93430A;
+    --proceso-fondo: #FBEEE0;
+    --revision: #4A5BA8;
+    --listo: #2F6B4F;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: 'Archivo', system-ui, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pagina {
+    width: 8.5in;
+    height: 11in;
+    padding: 1.05in 1in 0.9in;
+    background: var(--papel);
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .pagina:last-child { page-break-after: auto; }
+
+  .rotulo {
+    font-size: 9.5pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gris-claro);
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 40pt;
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 15pt;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  p { margin: 0; font-size: 11pt; line-height: 1.65; color: var(--tinta-suave); }
+  .tenue { color: var(--gris); }
+  .pie-pagina {
+    margin-top: auto;
+    padding-top: 0.3in;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 8.5pt;
+    color: var(--gris-claro);
+    border-top: 1px solid var(--borde);
+  }
+
+  /* ---------- Portada ---------- */
+  /* El contenido va abajo: el aire arriba hace que se lea deliberado
+     en vez de como una página que se quedó a medias. */
+  .portada { justify-content: flex-end; }
+  .portada .pie-pagina { margin-top: 0.62in; }
+  .marca { width: 58px; height: 58px; margin-bottom: 44px; }
+  .portada h1 { font-size: 62pt; }
+  .portada .entrada {
+    margin-top: 22px;
+    font-size: 13pt;
+    line-height: 1.6;
+    color: var(--gris);
+    max-width: 4.6in;
+  }
+  .filete { width: 44px; height: 2px; background: var(--tinta); margin: 38px 0 0; }
+
+  /* ---------- Estados ---------- */
+  .estados { margin-top: 34px; display: flex; flex-direction: column; }
+  .estado { display: flex; gap: 20px; padding: 17px 0; }
+  .estado + .estado { border-top: 1px solid var(--borde); }
+  .punto {
+    width: 13px; height: 13px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 5px;
+  }
+  .estado .nombre {
+    font-size: 12.5pt; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .estado .detalle { margin-top: 4px; font-size: 10.5pt; line-height: 1.55; color: var(--gris); }
+
+  .nota {
+    margin-top: 30px;
+    background: var(--proceso-fondo);
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .nota .titulo {
+    font-size: 10.5pt; font-weight: 600; color: var(--proceso-texto);
+    letter-spacing: -0.005em;
+  }
+  .nota p { margin-top: 6px; font-size: 10.5pt; color: var(--proceso-texto); }
+
+  /* ---------- Pasos ---------- */
+  .pasos { margin-top: 52px; display: flex; flex-direction: column; gap: 46px; }
+  .paso { display: flex; gap: 28px; align-items: flex-start; }
+  .numero {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36pt; line-height: 1; color: #C4BFB2;
+    width: 48px; flex-shrink: 0; text-align: right;
+  }
+  .paso .cuerpo { padding-top: 9px; }
+  .paso .cuerpo h2 { font-size: 16pt; }
+  .paso .cuerpo p { margin-top: 8px; font-size: 10.5pt; color: var(--gris); }
+
+  .aviso {
+    margin-top: 56px;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    padding: 20px 22px;
+    background: #FFFFFF;
+  }
+  .aviso .titulo { font-size: 10.5pt; font-weight: 600; }
+  .aviso p { margin-top: 6px; font-size: 10.5pt; color: var(--gris); }
+
+  /* ---------- Lista de avisos ---------- */
+  .avisos { margin-top: 28px; }
+  .aviso-fila {
+    display: flex; justify-content: space-between; gap: 30px;
+    padding: 13px 0; border-bottom: 1px solid var(--borde);
+    font-size: 10.5pt;
+  }
+  .aviso-fila:first-child { border-top: 1px solid var(--borde); }
+  .aviso-fila .que { color: var(--tinta-suave); }
+  .aviso-fila .quien { color: var(--gris-claro); white-space: nowrap; }
+
+  .seccion { margin-top: 44px; }
+  .seccion .rotulo { display: block; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. Portada ============ -->
+<section class="pagina portada">
+  <svg class="marca" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" rx="114" fill="#171614"/>
+    <g stroke="#F7F6F2" stroke-width="26" stroke-linecap="round" fill="none">
+      <path d="M150 190h212"/>
+      <path d="M150 262h212" opacity="0.55"/>
+      <path d="M150 334h124" opacity="0.3"/>
+    </g>
+    <circle cx="352" cy="334" r="54" fill="#B4550A"/>
+    <path d="M330 334l16 16 30-32" stroke="#F7F6F2" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+
+  <h1>Pendientes</h1>
+
+  <p class="entrada">
+    Una sola lista para los dos. Tú encargas, ves el avance en vivo y apruebas
+    cuando esté listo.
+  </p>
+
+  <div class="filete"></div>
+
+  <div class="pie-pagina">
+    <span>Guía rápida · 4 páginas</span>
+    <span>pendientes-tau.vercel.app</span>
+  </div>
+</section>
+
+<!-- ============ 2. Cómo funciona ============ -->
+<section class="pagina">
+  <span class="rotulo">Cómo funciona</span>
+  <h1 style="margin-top: 14px;">Cuatro<br>estados</h1>
+
+  <div class="estados">
+    <div class="estado">
+      <span class="punto" style="background: var(--pendiente);"></span>
+      <div>
+        <div class="nombre">Pendiente</div>
+        <div class="detalle">Lo acabas de encargar. Todavía nadie le ha entrado.</div>
+      </div>
+    </div>
+
+    <div class="estado">
+      <span class="punto" style="background: var(--proceso);"></span>
+      <div>
+        <div class="nombre">En proceso</div>
+        <div class="detalle">
+          Axel ya empezó. Un cronómetro arranca solo y verás cuánto lleva trabajado.
+        </div>
+      </div>
+    </div>
+
+    <div class="estado">
+      <span class="punto" style="background: var(--revision);"></span>
+      <div>
+        <div class="nombre">En revisión</div>
+        <div class="detalle">
+          Terminó y te lo pasa. Aquí decides: <strong>Aprobar</strong> o
+          <strong>Pedir cambios</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="estado">
+      <span class="punto" style="background: var(--listo);"></span>
+      <div>
+        <div class="nombre">Finalizado</div>
+        <div class="detalle">Aprobado por ti. Sale de la lista al día siguiente.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nota">
+    <div class="titulo">Nada se cierra sin tu visto bueno</div>
+    <p>
+      Axel no puede marcar algo como terminado por su cuenta: solo puede mandarlo
+      a tu revisión. Así no tienes que preguntar en qué va nada.
+    </p>
+  </div>
+
+  <div class="seccion">
+    <span class="rotulo">También</span>
+    <p class="tenue">
+      Puedes anotar <strong style="color: var(--tinta);">juntas</strong> con día y hora, comentar dentro de cada
+      pendiente, y tienes tu propia lista de cosas por hacer.
+    </p>
+  </div>
+
+  <div class="pie-pagina">
+    <span>Pendientes</span>
+    <span>2</span>
+  </div>
+</section>
+
+<!-- ============ 3. Instalación ============ -->
+<section class="pagina">
+  <span class="rotulo">Primer paso</span>
+  <h1 style="margin-top: 14px;">Instálala<br>en tu iPhone</h1>
+
+  <div class="pasos">
+    <div class="paso">
+      <span class="numero">1</span>
+      <div class="cuerpo">
+        <h2>Abre el enlace en Safari</h2>
+        <p>pendientes-tau.vercel.app</p>
+      </div>
+    </div>
+
+    <div class="paso">
+      <span class="numero">2</span>
+      <div class="cuerpo">
+        <h2>Compartir → Añadir a pantalla de inicio</h2>
+        <p>El botón de compartir es el cuadrito con la flecha hacia arriba.</p>
+      </div>
+    </div>
+
+    <div class="paso">
+      <span class="numero">3</span>
+      <div class="cuerpo">
+        <h2>Ábrela desde el ícono nuevo</h2>
+        <p>Crea tu cuenta con tu correo y una contraseña.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="aviso">
+    <div class="titulo">Tiene que ser Safari</div>
+    <p>
+      Desde Chrome no aparece la opción, y si la dejas como pestaña en vez de
+      instalarla, Apple no permite que lleguen las notificaciones. Es la única
+      parte quisquillosa de todo esto.
+    </p>
+  </div>
+
+  <div class="pie-pagina">
+    <span>Pendientes</span>
+    <span>3</span>
+  </div>
+</section>
+
+<!-- ============ 4. Notificaciones y calendario ============ -->
+<section class="pagina">
+  <span class="rotulo">Segundo paso</span>
+  <h1 style="margin-top: 14px;">Avisos</h1>
+
+  <p style="margin-top: 22px; max-width: 5in;">
+    Dentro de la app, entra a <strong>Actividad</strong> y toca
+    <strong>Activar</strong>. Acepta cuando el teléfono te pida permiso.
+  </p>
+
+  <div class="avisos">
+    <div class="aviso-fila">
+      <span class="que">Axel empieza un pendiente</span>
+      <span class="quien">al momento</span>
+    </div>
+    <div class="aviso-fila">
+      <span class="que">Te manda algo a revisión</span>
+      <span class="quien">al momento</span>
+    </div>
+    <div class="aviso-fila">
+      <span class="que">Comenta en un pendiente</span>
+      <span class="quien">al momento</span>
+    </div>
+    <div class="aviso-fila">
+      <span class="que">Algo tuyo está por vencer</span>
+      <span class="quien">24 h y 1 h antes</span>
+    </div>
+    <div class="aviso-fila">
+      <span class="que">Una junta va a empezar</span>
+      <span class="quien">1 h antes</span>
+    </div>
+  </div>
+
+  <p style="margin-top: 20px; font-size: 10pt;" class="tenue">
+    Si te parecen muchos, en esa misma pantalla puedes apagar los que quieras,
+    o poner un horario de silencio de 8 de la noche a 8 de la mañana.
+  </p>
+
+  <div class="seccion">
+    <span class="rotulo">Opcional</span>
+    <h2 style="font-size: 17pt;">Tus juntas en el calendario</h2>
+    <p style="margin-top: 10px; max-width: 5in;">
+      En <strong>Actividad → Tu calendario</strong>, toca <strong>Suscribirme</strong>.
+      Se abre tu app de Calendario y te pregunta una sola vez. A partir de ahí,
+      cada junta y cada fecha de entrega aparece sola junto a todo lo demás.
+    </p>
+  </div>
+
+  <div class="aviso" style="margin-top: 30px; background: var(--borde-suave); border-color: transparent;">
+    <div class="titulo">¿Algo no funciona?</div>
+    <p>Dile a Axel. Él hizo la app.</p>
+  </div>
+
+  <div class="pie-pagina">
+    <span>Pendientes</span>
+    <span>4</span>
+  </div>
+</section>
+
+</body>
+</html>
