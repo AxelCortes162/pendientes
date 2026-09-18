@@ -218,8 +218,16 @@ function TarjetaCalendario() {
   if (!token) return null
 
   const url = `${window.location.origin}/api/calendario?t=${token}`
-  // webcal:// hace que el teléfono lo abra en Calendario en vez del navegador
-  const webcal = url.replace(/^https?:/, 'webcal:')
+
+  // Cada plataforma se suscribe distinto:
+  // - Apple registra el esquema webcal:// y abre Calendario directo.
+  // - Android no lo registra, y encima la app de Google Calendar no permite
+  //   agregar calendarios por URL: hay que hacerlo desde el navegador y
+  //   después se sincroniza solo al teléfono.
+  const esAndroid = /android/i.test(navigator.userAgent)
+  const destino = esAndroid
+    ? `https://calendar.google.com/calendar/u/0/r/settings/addbyurl?cid=${encodeURIComponent(url)}`
+    : url.replace(/^https?:/, 'webcal:')
 
   async function copiar() {
     try {
@@ -245,10 +253,12 @@ function TarjetaCalendario() {
 
       <div className="mt-3 flex gap-2">
         <a
-          href={webcal}
+          href={destino}
+          target={esAndroid ? '_blank' : undefined}
+          rel={esAndroid ? 'noreferrer' : undefined}
           className="grow rounded-xl bg-tinta py-2.5 text-center text-xs font-medium text-white no-underline"
         >
-          Suscribirme
+          {esAndroid ? 'Abrir en Google Calendar' : 'Suscribirme'}
         </a>
         <button
           type="button"
@@ -260,6 +270,12 @@ function TarjetaCalendario() {
       </div>
 
       <p className="mt-2.5 text-[11px] leading-relaxed text-gris-claro">
+        {esAndroid
+          ? 'Se abre Google Calendar con la URL puesta; solo confirma. Tarda unas horas en aparecer la primera vez: Google revisa los calendarios suscritos a su ritmo.'
+          : 'Se abre tu app de Calendario y te pregunta si quieres suscribirte.'}
+      </p>
+
+      <p className="mt-1.5 text-[11px] leading-relaxed text-gris-claro">
         Esta URL es privada: quien la tenga puede ver tus pendientes.
       </p>
     </div>
