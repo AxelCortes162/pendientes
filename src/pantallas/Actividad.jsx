@@ -9,6 +9,7 @@ import {
   desactivarPush,
   esIOSSinInstalar,
   estadoPush,
+  probarPush,
   soportaPush,
 } from '../lib/push.js'
 
@@ -51,6 +52,7 @@ function TarjetaPush({ perfilId }) {
   const [estado, setEstado] = useState('cargando')
   const [error, setError] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  const [prueba, setPrueba] = useState(null)
 
   useEffect(() => {
     estadoPush().then(setEstado)
@@ -136,7 +138,69 @@ function TarjetaPush({ perfilId }) {
       {error && (
         <p className="mt-2.5 text-[11.5px] leading-relaxed text-proceso-texto">{error}</p>
       )}
+
+      {activo && (
+        <>
+          <button
+            type="button"
+            onClick={async () => {
+              setPrueba({ estado: 'enviando' })
+              try {
+                setPrueba({ estado: 'listo', ...(await probarPush()) })
+              } catch (e) {
+                setPrueba({ estado: 'error', mensaje: e.message })
+              }
+            }}
+            className="mt-3 w-full cursor-pointer rounded-xl border border-borde py-2.5 text-xs font-medium text-gris"
+          >
+            Enviar una de prueba
+          </button>
+
+          {prueba && <ResultadoPrueba prueba={prueba} />}
+        </>
+      )}
     </div>
+  )
+}
+
+/** Traduce el resultado del envío de prueba a algo accionable. */
+function ResultadoPrueba({ prueba }) {
+  if (prueba.estado === 'enviando') {
+    return <p className="mt-2 text-[11.5px] text-gris-claro">Enviando…</p>
+  }
+
+  if (prueba.estado === 'error') {
+    return (
+      <p className="mt-2 text-[11.5px] leading-relaxed text-proceso-texto">
+        No se pudo enviar: {prueba.mensaje}
+      </p>
+    )
+  }
+
+  if (prueba.suscripciones === 0) {
+    return (
+      <p className="mt-2 text-[11.5px] leading-relaxed text-proceso-texto">
+        Esta cuenta no tiene ningún dispositivo suscrito. Apaga y vuelve a activar aquí.
+      </p>
+    )
+  }
+
+  if (prueba.errores?.length) {
+    const e = prueba.errores[0]
+    return (
+      <p className="mt-2 text-[11.5px] leading-relaxed text-proceso-texto">
+        {e.servicio} respondió {e.codigo}.
+        {(e.codigo === 401 || e.codigo === 403) &&
+          ' Un 401 o 403 casi siempre es la llave VAPID mal puesta en el servidor.'}
+      </p>
+    )
+  }
+
+  return (
+    <p className="mt-2 text-[11.5px] leading-relaxed text-listo">
+      Enviada a {prueba.enviados} de {prueba.suscripciones} dispositivo
+      {prueba.suscripciones === 1 ? '' : 's'}. Si no aparece nada, revisa los permisos del sistema.
+    </p>
   )
 }
 

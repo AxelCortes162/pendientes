@@ -93,6 +93,26 @@ export async function desactivarPush() {
 }
 
 /**
+ * Se manda un aviso a uno mismo y devuelve el detalle.
+ * A diferencia de avisar(), aquí sí interesa el error: es la herramienta
+ * para saber por qué una notificación no llegó.
+ */
+export async function probarPush() {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) throw new Error('No hay sesión')
+
+  const respuesta = await fetch('/api/probar', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  const cuerpo = await respuesta.json().catch(() => ({}))
+  if (!respuesta.ok) throw new Error(cuerpo.error || `El servidor respondió ${respuesta.status}`)
+  return cuerpo
+}
+
+/**
  * Le pide al servidor que avise a la otra persona.
  * Si falla, se traga el error a propósito: que no llegue una notificación
  * nunca debe tumbar la acción que el usuario acaba de hacer.

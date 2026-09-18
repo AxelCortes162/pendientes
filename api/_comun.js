@@ -86,12 +86,15 @@ export async function enviarA(admin, perfilId, carga) {
     .eq('perfil_id', perfilId)
 
   if (error) throw new Error(error.message)
-  if (!suscripciones?.length) return { enviados: 0, limpiados: 0 }
+  if (!suscripciones?.length) {
+    return { suscripciones: 0, enviados: 0, limpiados: 0, errores: [] }
+  }
 
   const push = configurarWebPush()
   const cuerpo = JSON.stringify(carga)
   let enviados = 0
   const muertas = []
+  const errores = []
 
   await Promise.all(
     suscripciones.map(async (s) => {
@@ -102,7 +105,17 @@ export async function enviarA(admin, perfilId, carga) {
         )
         enviados++
       } catch (e) {
-        if (e.statusCode === 404 || e.statusCode === 410) muertas.push(s.id)
+        // 404/410 = el navegador ya no existe: se limpia sin ruido.
+        // Cualquier otro código sí importa (401/403 suele ser VAPID mal puesta).
+        if (e.statusCode === 404 || e.statusCode === 410) {
+          muertas.push(s.id)
+        } else {
+          errores.push({
+            codigo: e.statusCode || null,
+            mensaje: String(e.body || e.message || e).slice(0, 200),
+            servicio: new URL(s.endpoint).host,
+          })
+        }
       }
     }),
   )
@@ -111,5 +124,10 @@ export async function enviarA(admin, perfilId, carga) {
     await admin.from('suscripciones_push').delete().in('id', muertas)
   }
 
-  return { enviados, limpiados: muertas.length }
+  return {
+    suscripciones: suscripciones.length,
+    enviados,
+    limpiados: muertas.length,
+    errores,
+  }
 }

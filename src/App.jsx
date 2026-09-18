@@ -76,12 +76,17 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
-  // El aviso flotante se va solo a los 3 segundos
+  // El aviso flotante se va solo. Los errores duran más: hay que leerlos.
   useEffect(() => {
     if (!aviso) return
-    const id = setTimeout(() => setAviso(null), 3000)
+    const id = setTimeout(() => setAviso(null), aviso.malo ? 7000 : 3000)
     return () => clearTimeout(id)
   }, [aviso])
+
+  // Que un fallo de guardado no se quede solo en la consola
+  useEffect(() => {
+    if (error && listo) setAviso({ texto: error, malo: true })
+  }, [error, listo])
 
   const yo = personas[miId]
   const otro = useMemo(
@@ -97,7 +102,7 @@ export default function App() {
     const destinoId =
       miId === objetivo.asignadoId ? objetivo.creadorId : objetivo.asignadoId
     if (destinoId && destinoId !== miId && personas[destinoId]) {
-      setAviso(`Notificación enviada a ${personas[destinoId].nombre}`)
+      setAviso({ texto: `Notificación enviada a ${personas[destinoId].nombre}` })
     }
   }
 
@@ -114,7 +119,7 @@ export default function App() {
   function alCrear(datos) {
     crear(datos)
     if (datos.asignadoId !== miId && personas[datos.asignadoId]) {
-      setAviso(`Notificación enviada a ${personas[datos.asignadoId].nombre}`)
+      setAviso({ texto: `Notificación enviada a ${personas[datos.asignadoId].nombre}` })
     }
     setVista(datos.asignadoId === miId ? 'mios' : 'equipo')
   }
@@ -211,8 +216,12 @@ export default function App() {
 
         {aviso && (
           <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-5">
-            <p className="rounded-full bg-tinta px-4 py-2.5 text-[13px] font-medium text-papel shadow-lg">
-              {aviso}
+            <p
+              className={`rounded-2xl px-4 py-2.5 text-[13px] leading-snug font-medium shadow-lg ${
+                aviso.malo ? 'bg-proceso text-white' : 'bg-tinta text-papel'
+              }`}
+            >
+              {aviso.texto}
             </p>
           </div>
         )}
