@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Archivo', system-ui, sans-serif;
+
+  /* Papel y tinta */
+  --color-papel: #f7f6f2;
+  --color-lienzo: #fcfbf8;
+  --color-tinta: #171614;
+  --color-tinta-suave: #3b3830;
+  --color-gris: #6b6862;
+  --color-gris-claro: #8a8578;
+  --color-borde: #e5e2da;
+  --color-borde-suave: #efede6;
+  --color-punto: #c9c5ba;
+
+  /* Estados: el único lugar donde entra el color */
+  --color-pendiente: #8a8578;
+  --color-pendiente-texto: #5c584e;
+  --color-pendiente-fondo: #efede6;
+
+  --color-proceso: #b4550a;
+  --color-proceso-texto: #93430a;
+  --color-proceso-fondo: #fbeee0;
+
+  --color-revision: #4a5ba8;
+  --color-revision-texto: #3d4a8c;
+  --color-revision-fondo: #e9ebf7;
+
+  --color-listo: #2f6b4f;
+  --color-listo-texto: #2f6b4f;
+  --color-listo-fondo: #e4f0e8;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* Respeta el notch y la barra de gestos en iPhone */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Etiqueta pequeña en versalitas, se repite en toda la app */
+.rotulo {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gris-claro);
+}
