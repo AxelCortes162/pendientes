@@ -144,7 +144,7 @@ export function BarraInferior({ vista, irA, hayAvisos }) {
     { id: 'actividad', etiqueta: 'Actividad', Icono: Icono.Campana },
   ]
   return (
-    <nav className="flex justify-between border-t border-borde bg-lienzo px-5 pt-2.5 pb-5">
+    <nav className="flex shrink-0 justify-between border-t border-borde bg-lienzo px-5 pt-2.5 pb-5">
       {tabs.map((t) => {
         const activo = vista === t.id
         return (

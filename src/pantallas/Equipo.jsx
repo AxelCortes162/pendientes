@@ -17,7 +17,7 @@ export default function Equipo({ fichas, yo, ahora, onAbrir, onCambiarEstado, on
 
   return (
     <>
-      <header className="flex flex-col gap-3.5 px-5 pt-7 pb-4">
+      <header className="flex shrink-0 flex-col gap-3.5 px-5 pt-7 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <span className="rotulo text-gris">Hola, {yo.nombre}</span>
@@ -137,7 +137,7 @@ export default function Equipo({ fichas, yo, ahora, onAbrir, onCambiarEstado, on
         </div>
       </div>
 
-      <div className="px-5 pt-3.5 pb-2.5">
+      <div className="shrink-0 px-5 pt-3.5 pb-2.5">
         <button
           type="button"
           onClick={onNuevo}

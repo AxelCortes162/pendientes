@@ -42,7 +42,7 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
 
   return (
     <>
-      <header className="flex flex-col gap-3.5 px-5 pt-7 pb-3.5">
+      <header className="flex shrink-0 flex-col gap-3.5 px-5 pt-7 pb-3.5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <span className="rotulo text-gris">{diaLargo(new Date().toISOString())}</span>
@@ -68,7 +68,7 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
         </p>
       </header>
 
-      <div className="flex gap-1.5 overflow-x-auto px-5 pb-3.5">
+      <div className="flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-3.5">
         {FILTROS.map((f) => (
           <button
             key={f.id}
@@ -141,7 +141,7 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
         )}
       </div>
 
-      <div className="px-5 pt-3.5 pb-2.5">
+      <div className="shrink-0 px-5 pt-3.5 pb-2.5">
         <button
           type="button"
           onClick={onNuevo}

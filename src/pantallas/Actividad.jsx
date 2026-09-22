@@ -308,7 +308,7 @@ export default function Actividad({ actividad, yo, avisos, onCambiarAviso, onSal
 
   return (
     <>
-      <header className="px-5 pt-7 pb-4">
+      <header className="shrink-0 px-5 pt-7 pb-4">
         <h1 className="font-display text-[42px] leading-none font-normal">Actividad</h1>
       </header>
 

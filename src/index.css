@@ -1,36 +1,44 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-sans: 'Archivo', system-ui, sans-serif;
+  --font-display: 'Dela Gothic One', Impact, sans-serif;
+  --font-sans: 'Zen Kaku Gothic New', system-ui, sans-serif;
 
-  /* Papel y tinta */
-  --color-papel: #f7f6f2;
-  --color-lienzo: #fcfbf8;
-  --color-tinta: #171614;
-  --color-tinta-suave: #3b3830;
-  --color-gris: #6b6862;
-  --color-gris-claro: #8a8578;
-  --color-borde: #e5e2da;
-  --color-borde-suave: #efede6;
-  --color-punto: #c9c5ba;
+  /* Tinta y papel: contraste duro, nada de grises tibios */
+  --color-papel: #ffffff;
+  --color-lienzo: #f4f4f4;
+  --color-tinta: #0a0a0a;
+  --color-tinta-suave: #262626;
+  --color-gris: #525252;
+  --color-gris-claro: #737373;
+  --color-borde: #0a0a0a;
+  --color-borde-suave: #e5e5e5;
+  --color-punto: #a3a3a3;
 
-  /* Estados: el único lugar donde entra el color */
-  --color-pendiente: #8a8578;
-  --color-pendiente-texto: #5c584e;
-  --color-pendiente-fondo: #efede6;
+  /* Estados */
+  --color-pendiente: #525252;
+  --color-pendiente-texto: #262626;
+  --color-pendiente-fondo: #ededed;
 
-  --color-proceso: #b4550a;
-  --color-proceso-texto: #93430a;
-  --color-proceso-fondo: #fbeee0;
+  --color-proceso: #e5342a;
+  --color-proceso-texto: #b81d14;
+  --color-proceso-fondo: #ffe4e1;
 
-  --color-revision: #4a5ba8;
-  --color-revision-texto: #3d4a8c;
-  --color-revision-fondo: #e9ebf7;
+  --color-revision: #2563eb;
+  --color-revision-texto: #1d4ed8;
+  --color-revision-fondo: #dbeafe;
 
-  --color-listo: #2f6b4f;
-  --color-listo-texto: #2f6b4f;
-  --color-listo-fondo: #e4f0e8;
+  --color-listo: #15803d;
+  --color-listo-texto: #166534;
+  --color-listo-fondo: #dcfce7;
+
+  /* Esquinas casi rectas: el trazo de manga no es redondito */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 5px;
+  --radius-3xl: 6px;
 }
 
 html,
@@ -41,19 +49,49 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-papel);
   color: var(--color-tinta);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  /* Respeta el notch y la barra de gestos en iPhone */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
+
+  /* Screentone: la trama de puntos del manga impreso */
+  background-color: var(--color-papel);
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.13) 1px, transparent 0);
+  background-size: 7px 7px;
 }
 
-/* Etiqueta pequeña en versalitas, se repite en toda la app */
 .rotulo {
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-gris-claro);
+  font-weight: 700;
+  color: var(--color-gris);
+}
+
+/*
+  Estas reglas van FUERA de @layer a propósito: el CSS sin capa gana sobre las
+  utilidades de Tailwind, así el trazo grueso se aplica sin tocar 40 archivos
+  ni ensuciar todo con !important.
+*/
+
+/* Todo borde es trazo de tinta */
+.border {
+  border-width: 2px;
+}
+
+/* Las tarjetas proyectan sombra dura, como una viñeta recortada */
+.rounded-2xl.border,
+.rounded-xl.border,
+.rounded-lg.border {
+  box-shadow: 3px 3px 0 var(--color-tinta);
+}
+
+.shadow-lg {
+  box-shadow: 4px 4px 0 var(--color-tinta);
+}
+
+/* Los títulos van apretados: Dela Gothic One ya trae mucho peso */
+.font-display {
+  letter-spacing: -0.02em;
 }

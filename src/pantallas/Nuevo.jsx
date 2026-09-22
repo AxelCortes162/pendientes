@@ -61,7 +61,7 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
 
   return (
     <form onSubmit={guardar} className="flex h-full flex-col">
-      <header className="flex items-center justify-between gap-3 px-5 pt-6 pb-3.5">
+      <header className="flex shrink-0 items-center justify-between gap-3 px-5 pt-6 pb-3.5">
         <button
           type="button"
           onClick={onCancelar}
@@ -245,7 +245,7 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
         </div>
       </div>
 
-      <div className="px-5 pt-4 pb-6">
+      <div className="shrink-0 px-5 pt-4 pb-6">
         <button
           type="submit"
           disabled={!listo}

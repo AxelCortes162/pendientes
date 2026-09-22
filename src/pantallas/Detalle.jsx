@@ -147,7 +147,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
 
   return (
     <>
-      <header className="flex items-center justify-between px-5 pt-6 pb-3">
+      <header className="flex shrink-0 items-center justify-between px-5 pt-6 pb-3">
         <button
           type="button"
           onClick={onVolver}
@@ -278,7 +278,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-borde bg-lienzo px-5 pt-3 pb-5">
+      <div className="flex shrink-0 flex-col gap-2.5 border-t border-borde bg-lienzo px-5 pt-3 pb-5">
         <form
           onSubmit={enviar}
           className="flex items-center gap-2 rounded-full border border-borde bg-white py-1 pr-1 pl-4"
