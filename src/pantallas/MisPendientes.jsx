@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import TarjetaFicha from '../componentes/TarjetaFicha.jsx'
 import { Avatar, Icono, Separador } from '../ui.jsx'
-import { diaLargo } from '../datos.js'
+import { cerroEn, diaLargo, yaPaso } from '../datos.js'
 
 const FILTROS = [
   { id: 'todos', etiqueta: 'Todos' },
@@ -21,12 +21,12 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
   const [filtro, setFiltro] = useState('todos')
   const [verAnteriores, setVerAnteriores] = useState(false)
 
-  const activas = fichas.filter((f) => f.estado !== 'listo')
+  const activas = fichas.filter((f) => f.estado !== 'listo' && !yaPaso(f, ahora))
 
   // Lo terminado hace semanas no tiene por qué seguir en la pantalla
   // principal: esta lista es para lo que está vivo.
-  const terminadas = fichas.filter((f) => f.estado === 'listo')
-  const deHoy = terminadas.filter((f) => esHoy(f.actualizadoEn || f.creadoEn))
+  const terminadas = fichas.filter((f) => f.estado === 'listo' || yaPaso(f, ahora))
+  const deHoy = terminadas.filter((f) => esHoy(cerroEn(f)))
   const anteriores = terminadas.length - deHoy.length
   const visiblesTerminadas = verAnteriores ? terminadas : deHoy
 

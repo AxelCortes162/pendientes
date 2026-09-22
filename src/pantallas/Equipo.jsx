@@ -1,7 +1,7 @@
 import TarjetaFicha from '../componentes/TarjetaFicha.jsx'
 import { Avatar, Icono, Separador } from '../ui.jsx'
 import { usePersonas } from '../lib/personas.jsx'
-import { duracion, hora, segundosVividos } from '../datos.js'
+import { duracion, hora, segundosVividos, yaPaso } from '../datos.js'
 
 export default function Equipo({ fichas, yo, ahora, onAbrir, onCambiarEstado, onNuevo }) {
   const personas = usePersonas()
@@ -11,7 +11,7 @@ export default function Equipo({ fichas, yo, ahora, onAbrir, onCambiarEstado, on
 
   const porRevisar = asignadas.filter((f) => f.estado === 'revision')
   const enProceso = asignadas.filter((f) => f.estado === 'proceso')
-  const resto = asignadas.filter((f) => f.estado === 'pendiente')
+  const resto = asignadas.filter((f) => f.estado === 'pendiente' && !yaPaso(f, ahora))
 
   const otro = Object.values(personas).find((p) => p.id !== yo.id)
 

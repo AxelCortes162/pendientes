@@ -253,6 +253,22 @@ export function duracion(segundos) {
   return m ? `${h} h ${m} min` : `${h} h`
 }
 
+/**
+ * Una junta no se cierra a mano: pasa la hora y deja de ser asunto de hoy.
+ * Los pendientes, en cambio, solo salen cuando alguien los aprueba.
+ */
+export function yaPaso(ficha, ahora = Date.now()) {
+  if (ficha.tipo !== 'junta') return false
+  const fin = ficha.terminaEn || ficha.iniciaEn
+  return Boolean(fin) && new Date(fin).getTime() < ahora
+}
+
+/** Cuándo dejó de estar viva: para agrupar lo de hoy. */
+export function cerroEn(ficha) {
+  if (ficha.tipo === 'junta') return ficha.terminaEn || ficha.iniciaEn || ficha.creadoEn
+  return ficha.actualizadoEn || ficha.creadoEn
+}
+
 /** Segundos trabajados, contando el cronómetro que corre ahora mismo. */
 export function segundosVividos(ficha, ahora = Date.now()) {
   const base = ficha.segundosTrabajados || 0
