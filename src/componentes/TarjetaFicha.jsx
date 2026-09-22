@@ -46,7 +46,7 @@ export default function TarjetaFicha({ ficha, yo, ahora, onAbrir }) {
         </span>
       </div>
 
-      <div className="mt-2.5 text-base leading-snug font-medium">{ficha.titulo}</div>
+      <div className="font-display mt-2.5 text-[20px] leading-[1.08]">{ficha.titulo}</div>
 
       <div className="mt-3 flex items-center gap-2.5 text-xs text-gris">
         <span>{quien}</span>

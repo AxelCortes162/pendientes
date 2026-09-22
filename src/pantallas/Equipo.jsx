@@ -141,7 +141,7 @@ export default function Equipo({ fichas, yo, ahora, onAbrir, onCambiarEstado, on
         <button
           type="button"
           onClick={onNuevo}
-          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white"
+          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
         >
           Asignar pendiente a {otro?.nombre}
         </button>

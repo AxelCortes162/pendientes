@@ -1,44 +1,43 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Dela Gothic One', Impact, sans-serif;
+  --font-display: 'Anton', Impact, sans-serif;
   --font-sans: 'Zen Kaku Gothic New', system-ui, sans-serif;
 
-  /* Tinta y papel: contraste duro, nada de grises tibios */
-  --color-papel: #ffffff;
-  --color-lienzo: #f4f4f4;
-  --color-tinta: #0a0a0a;
-  --color-tinta-suave: #262626;
-  --color-gris: #525252;
-  --color-gris-claro: #737373;
-  --color-borde: #0a0a0a;
-  --color-borde-suave: #e5e5e5;
-  --color-punto: #a3a3a3;
+  /* Tinta sobre papel viejo, con un solo rojo */
+  --color-papel: #f2efe6;
+  --color-lienzo: #e6e2d6;
+  --color-tinta: #111110;
+  --color-tinta-suave: #2a2a28;
+  --color-gris: #57564f;
+  --color-gris-claro: #807e74;
+  --color-borde: #111110;
+  --color-borde-suave: #d6d2c4;
+  --color-punto: #a8a496;
 
-  /* Estados */
-  --color-pendiente: #525252;
-  --color-pendiente-texto: #262626;
-  --color-pendiente-fondo: #ededed;
+  --color-pendiente: #57564f;
+  --color-pendiente-texto: #2a2a28;
+  --color-pendiente-fondo: #e0dcce;
 
-  --color-proceso: #e5342a;
-  --color-proceso-texto: #b81d14;
-  --color-proceso-fondo: #ffe4e1;
+  --color-proceso: #c81e1e;
+  --color-proceso-texto: #9c1717;
+  --color-proceso-fondo: #f7ded9;
 
-  --color-revision: #2563eb;
-  --color-revision-texto: #1d4ed8;
-  --color-revision-fondo: #dbeafe;
+  --color-revision: #1d4ed8;
+  --color-revision-texto: #1e40af;
+  --color-revision-fondo: #dbe4fb;
 
   --color-listo: #15803d;
-  --color-listo-texto: #166534;
-  --color-listo-fondo: #dcfce7;
+  --color-listo-texto: #14532d;
+  --color-listo-fondo: #d9e9dd;
 
-  /* Esquinas casi rectas: el trazo de manga no es redondito */
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-xl: 4px;
-  --radius-2xl: 5px;
-  --radius-3xl: 6px;
+  /* Nada de esquinas suaves: esto está entintado, no redondeado */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
 }
 
 html,
@@ -57,41 +56,53 @@ body {
 
   /* Screentone: la trama de puntos del manga impreso */
   background-color: var(--color-papel);
-  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.13) 1px, transparent 0);
-  background-size: 7px 7px;
+  background-image: radial-gradient(circle at 1px 1px, rgba(17, 17, 16, 0.14) 1px, transparent 0);
+  background-size: 6px 6px;
 }
 
 .rotulo {
   font-size: 10px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 700;
   color: var(--color-gris);
 }
 
-/*
-  Estas reglas van FUERA de @layer a propósito: el CSS sin capa gana sobre las
-  utilidades de Tailwind, así el trazo grueso se aplica sin tocar 40 archivos
-  ni ensuciar todo con !important.
-*/
-
-/* Todo borde es trazo de tinta */
-.border {
-  border-width: 2px;
+/* Banda negra con líneas de velocidad: cabecera y navegación */
+.banda {
+  background-color: var(--color-tinta);
+  color: var(--color-papel);
+  background-image: repeating-linear-gradient(
+    102deg,
+    rgba(242, 239, 230, 0.075) 0 1px,
+    transparent 1px 9px
+  );
 }
 
-/* Las tarjetas proyectan sombra dura, como una viñeta recortada */
+/*
+  Fuera de @layer a propósito: el CSS sin capa gana sobre las utilidades de
+  Tailwind, así el trazo grueso se aplica sin tocar cada componente ni
+  ensuciar todo con !important.
+*/
+
+/* Todo borde es trazo de plumilla */
+.border {
+  border-width: 3px;
+}
+
+/* Las tarjetas se recortan de la página: sombra sólida, sin difuminar */
 .rounded-2xl.border,
 .rounded-xl.border,
 .rounded-lg.border {
-  box-shadow: 3px 3px 0 var(--color-tinta);
-}
-
-.shadow-lg {
   box-shadow: 4px 4px 0 var(--color-tinta);
 }
 
-/* Los títulos van apretados: Dela Gothic One ya trae mucho peso */
+.shadow-lg {
+  box-shadow: 5px 5px 0 var(--color-tinta);
+}
+
+/* Anton solo existe en mayúsculas de verdad; en minúsculas se ve raro */
 .font-display {
-  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
 }

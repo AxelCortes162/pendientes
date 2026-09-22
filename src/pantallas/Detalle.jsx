@@ -80,7 +80,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
       <button
         type="button"
         onClick={() => descargarICS(ficha)}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
       >
         <Icono.Calendario tam={17} grosor={2} />
         Agregar a mi calendario
@@ -91,7 +91,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
       <button
         type="button"
         onClick={() => onCambiarEstado(ficha.id, 'proceso')}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
       >
         <Icono.Play tam={16} grosor={2.2} />
         Empezar ahora
@@ -102,7 +102,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
       <button
         type="button"
         onClick={() => onCambiarEstado(ficha.id, 'revision')}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-listo py-[15px] text-sm font-medium text-white"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
       >
         <Icono.Palomita tam={17} />
         Enviar a revisión de {creador.nombre}
@@ -114,7 +114,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
         <button
           type="button"
           onClick={() => onCambiarEstado(ficha.id, 'listo')}
-          className="grow cursor-pointer rounded-2xl bg-listo py-[15px] text-sm font-medium text-white"
+          className="grow cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
         >
           Aprobar
         </button>

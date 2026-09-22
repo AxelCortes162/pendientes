@@ -42,33 +42,27 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
 
   return (
     <>
-      <header className="flex shrink-0 flex-col gap-3.5 px-5 pt-7 pb-3.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <span className="rotulo text-gris">{diaLargo(new Date().toISOString())}</span>
-            <h1 className="font-display text-[42px] leading-none font-normal">Pendientes</h1>
+      <header className="banda shrink-0">
+        <div className="flex items-start justify-between gap-3 px-5 pt-6 pb-4">
+          <div>
+            <span className="rotulo text-papel/55">{diaLargo(new Date().toISOString())}</span>
+            <h1 className="font-display mt-1 text-[46px] leading-[0.9] font-normal">Pendientes</h1>
+            <span className="mt-1 block text-[11px] tracking-[0.34em] text-papel/45">
+              ペンディエンテス
+            </span>
           </div>
           <Avatar persona={yo} tam={44} />
         </div>
 
-        <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-gris">
-          <span className="font-semibold text-tinta">{activas.length} activos</span>
-          {vencenHoy > 0 && (
-            <>
-              <span className="h-[3px] w-[3px] rounded-full bg-punto" />
-              <span>{vencenHoy} vence hoy</span>
-            </>
-          )}
-          {enRevision > 0 && (
-            <>
-              <span className="h-[3px] w-[3px] rounded-full bg-punto" />
-              <span>{enRevision} esperando revisión</span>
-            </>
-          )}
+        {/* Franja roja: el estado de hoy, de un vistazo */}
+        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 bg-proceso px-5 py-2 text-[10px] font-bold tracking-[0.16em] text-white uppercase">
+          <span>{activas.length} activos</span>
+          {vencenHoy > 0 && <span>· {vencenHoy} vence hoy</span>}
+          {enRevision > 0 && <span>· {enRevision} en revisión</span>}
         </p>
       </header>
 
-      <div className="flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-3.5">
+      <div className="flex shrink-0 gap-1.5 overflow-x-auto px-5 pt-4 pb-3.5">
         {FILTROS.map((f) => (
           <button
             key={f.id}
@@ -145,7 +139,7 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
         <button
           type="button"
           onClick={onNuevo}
-          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white"
+          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
         >
           Nuevo pendiente
         </button>

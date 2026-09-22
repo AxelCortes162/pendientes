@@ -144,7 +144,7 @@ export function BarraInferior({ vista, irA, hayAvisos }) {
     { id: 'actividad', etiqueta: 'Actividad', Icono: Icono.Campana },
   ]
   return (
-    <nav className="flex shrink-0 justify-between border-t border-borde bg-lienzo px-5 pt-2.5 pb-5">
+    <nav className="banda flex shrink-0 justify-between px-5 pt-2.5 pb-5">
       {tabs.map((t) => {
         const activo = vista === t.id
         return (
@@ -154,7 +154,7 @@ export function BarraInferior({ vista, irA, hayAvisos }) {
             onClick={() => irA(t.id)}
             aria-current={activo ? 'page' : undefined}
             className={`relative flex grow cursor-pointer flex-col items-center gap-1.5 py-1.5 ${
-              activo ? 'text-tinta' : 'text-gris-claro'
+              activo ? 'text-papel' : 'text-papel/45'
             }`}
           >
             <t.Icono />

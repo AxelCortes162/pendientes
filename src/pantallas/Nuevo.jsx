@@ -111,7 +111,7 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
             onChange={(e) => setTitulo(e.target.value)}
             placeholder={esJunta ? 'Revisión de avances' : '¿Qué hay que hacer?'}
             autoFocus
-            className="w-full bg-transparent py-0.5 font-display text-[27px] leading-tight outline-none placeholder:text-[#C9C5BA]"
+            className="w-full bg-transparent py-0.5 text-[24px] leading-tight font-bold outline-none placeholder:text-punto"
           />
           <label htmlFor="nota" className="sr-only">
             Nota
@@ -249,7 +249,7 @@ export default function Nuevo({ yo, onCancelar, onCrear }) {
         <button
           type="submit"
           disabled={!listo}
-          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white disabled:opacity-30"
+          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white disabled:opacity-30"
         >
           {para.id === yo.id ? 'Crear' : `Crear y avisar a ${para.nombre}`}
         </button>

@@ -106,7 +106,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={!listo || cargando}
-          className="mt-2 w-full cursor-pointer rounded-2xl bg-tinta py-[15px] text-sm font-medium text-white disabled:opacity-30"
+          className="mt-2 w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white disabled:opacity-30"
         >
           {cargando ? 'Un momento…' : registrando ? 'Crear cuenta' : 'Entrar'}
         </button>
