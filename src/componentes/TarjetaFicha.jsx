@@ -26,9 +26,17 @@ export default function TarjetaFicha({ ficha, yo, ahora, onAbrir }) {
     >
       <div className="flex items-center justify-between gap-2.5">
         {esJunta ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-borde-suave px-2.5 py-1 text-[10px] font-semibold tracking-[0.08em] text-pendiente-texto uppercase">
-            <Icono.Calendario tam={11} grosor={2.2} />
-            Junta
+          <span className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-borde-suave px-2.5 py-1 text-[10px] font-semibold tracking-[0.08em] text-pendiente-texto uppercase">
+              <Icono.Calendario tam={11} grosor={2.2} />
+              Junta
+            </span>
+            {ficha.vistoEn && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-listo-fondo px-2 py-1 text-[10px] font-semibold tracking-[0.08em] text-listo-texto uppercase">
+                <Icono.Palomita tam={10} />
+                Confirmada
+              </span>
+            )}
           </span>
         ) : (
           <ChipEstado estado={ficha.estado} />

@@ -23,6 +23,7 @@ function deFila(f) {
     iniciadoEn: f.iniciado_en,
     segundosTrabajados: f.segundos_trabajados,
     alCalendario: f.al_calendario,
+    vistoEn: f.visto_en,
     version: f.version,
     creadoEn: f.creado_en,
     // El trigger la actualiza en cada cambio, así que en una ficha terminada
@@ -32,7 +33,8 @@ function deFila(f) {
       .map((c) => ({
         id: c.id,
         autorId: c.autor_id,
-        texto: c.texto,
+        texto: c.texto || '',
+        foto: c.foto || null,
         creadoEn: c.creado_en,
       }))
       .sort((a, b) => new Date(a.creadoEn) - new Date(b.creadoEn)),
@@ -119,7 +121,7 @@ export async function cargarFichas() {
   const filas = revisar(
     await supabase
       .from('fichas')
-      .select('*, comentarios(id, autor_id, texto, creado_en)')
+      .select('*, comentarios(id, autor_id, texto, foto, creado_en)')
       .order('creado_en', { ascending: false }),
   )
   return filas.map(deFila)
@@ -179,21 +181,55 @@ export async function cambiarEstado(id, estado) {
       .from('fichas')
       .update({ estado })
       .eq('id', id)
-      .select('*, comentarios(id, autor_id, texto, creado_en)')
+      .select('*, comentarios(id, autor_id, texto, foto, creado_en)')
       .single(),
   )
   return deFila(fila)
 }
 
-export async function agregarComentario(fichaId, autorId, texto) {
+/** Marca "ahí estaré" en una junta. */
+export async function confirmarJunta(id) {
+  const fila = revisar(
+    await supabase
+      .from('fichas')
+      .update({ visto_en: new Date().toISOString() })
+      .eq('id', id)
+      .select('*, comentarios(id, autor_id, texto, foto, creado_en)')
+      .single(),
+  )
+  return deFila(fila)
+}
+
+/**
+ * Sube una imagen al bucket público y devuelve su URL.
+ * El nombre lleva un uuid: la URL es pública pero no se adivina.
+ */
+export async function subirFoto(archivo) {
+  const ext = (archivo.name.split('.').pop() || 'jpg').toLowerCase()
+  const ruta = `${crypto.randomUUID()}.${ext}`
+  revisar(
+    await supabase.storage
+      .from('fotos')
+      .upload(ruta, archivo, { contentType: archivo.type, upsert: false }),
+  )
+  return supabase.storage.from('fotos').getPublicUrl(ruta).data.publicUrl
+}
+
+export async function agregarComentario(fichaId, autorId, texto, foto = null) {
   const fila = revisar(
     await supabase
       .from('comentarios')
-      .insert({ ficha_id: fichaId, autor_id: autorId, texto })
+      .insert({ ficha_id: fichaId, autor_id: autorId, texto: texto || null, foto })
       .select()
       .single(),
   )
-  return { id: fila.id, autorId: fila.autor_id, texto: fila.texto, creadoEn: fila.creado_en }
+  return {
+    id: fila.id,
+    autorId: fila.autor_id,
+    texto: fila.texto || '',
+    foto: fila.foto || null,
+    creadoEn: fila.creado_en,
+  }
 }
 
 /* ------------------------------------------------------------- realtime */

@@ -32,6 +32,10 @@ const MENSAJES = {
     titulo: `${quien} comentó`,
     cuerpo: f.titulo,
   }),
+  visto: (quien, f) => ({
+    titulo: `${quien} confirmó la junta`,
+    cuerpo: f.titulo,
+  }),
 }
 
 // Qué avisos se pueden apagar. Los que no están aquí son del flujo central

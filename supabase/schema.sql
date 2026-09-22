@@ -55,6 +55,7 @@ create table fichas (
   segundos_trabajados integer not null default 0 check (segundos_trabajados >= 0),
 
   al_calendario       boolean not null default true,
+  visto_en            timestamptz,   -- juntas: cuándo se confirmó asistencia
   version             integer not null default 0,  -- SEQUENCE del .ics
 
   creado_en           timestamptz not null default now(),
@@ -75,8 +76,14 @@ create table comentarios (
   id        uuid primary key default gen_random_uuid(),
   ficha_id  uuid not null references fichas(id) on delete cascade,
   autor_id  uuid not null references perfiles(id) on delete cascade,
-  texto     text not null check (char_length(texto) between 1 and 2000),
-  creado_en timestamptz not null default now()
+  texto     text,
+  foto      text,           -- URL pública en el bucket 'fotos'
+  creado_en timestamptz not null default now(),
+  -- Puede ser solo texto, solo foto, o las dos; vacío no.
+  constraint comentarios_contenido check (
+    (texto is null or char_length(texto) between 1 and 2000)
+    and (texto is not null or foto is not null)
+  )
 );
 
 create index on comentarios (ficha_id, creado_en);

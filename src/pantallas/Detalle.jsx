@@ -53,8 +53,17 @@ function Paso({ paso, estadoActual }) {
   )
 }
 
-export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, onComentar }) {
+export default function Detalle({
+  ficha,
+  yo,
+  ahora,
+  onVolver,
+  onCambiarEstado,
+  onComentar,
+  onConfirmar,
+}) {
   const [borrador, setBorrador] = useState('')
+  const [foto, setFoto] = useState(null)
   const personas = usePersonas()
 
   const creador = personas[ficha.creadorId]
@@ -68,23 +77,42 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
   function enviar(e) {
     e.preventDefault()
     const texto = borrador.trim()
-    if (!texto) return
-    onComentar(ficha.id, texto)
+    if (!texto && !foto) return
+    onComentar(ficha.id, texto, foto)
     setBorrador('')
+    setFoto(null)
   }
 
   // Qué botón toca según el estado y quién eres
   let acciones = null
   if (esJunta) {
+    // Al invitado le toca confirmar; quien la puso ya sabe que va.
+    const faltaConfirmar = soyAsignado && !soyCreador && !ficha.vistoEn
     acciones = (
-      <button
-        type="button"
-        onClick={() => descargarICS(ficha)}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
-      >
-        <Icono.Calendario tam={17} grosor={2} />
-        Agregar a mi calendario
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => descargarICS(ficha)}
+          className={`flex grow cursor-pointer items-center justify-center gap-2 rounded-2xl py-[15px] ${
+            faltaConfirmar
+              ? 'border border-borde bg-white text-sm font-medium text-tinta-suave'
+              : 'bg-tinta font-display text-[17px] tracking-wide text-white'
+          }`}
+        >
+          <Icono.Calendario tam={17} grosor={2} />
+          {faltaConfirmar ? 'Calendario' : 'Agregar a mi calendario'}
+        </button>
+        {faltaConfirmar && (
+          <button
+            type="button"
+            onClick={() => onConfirmar(ficha.id)}
+            className="flex grow cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
+          >
+            <Icono.Palomita tam={17} />
+            Ahí estaré
+          </button>
+        )}
+      </div>
     )
   } else if (ficha.estado === 'pendiente' && soyAsignado) {
     acciones = (
@@ -190,6 +218,30 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
               {diaLargo(ficha.iniciaEn)} · {hora(ficha.iniciaEn)}
               {ficha.terminaEn && ` a ${hora(ficha.terminaEn)}`}
             </div>
+
+            <div className="mt-3 h-px bg-borde-suave" />
+            <p className="mt-3 flex items-center gap-2 text-xs">
+              {ficha.vistoEn ? (
+                <>
+                  <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-listo-fondo text-listo">
+                    <Icono.Palomita tam={11} />
+                  </span>
+                  <span className="text-listo-texto">
+                    {asignado.id === yo.id ? 'Confirmaste' : `${asignado.nombre} confirmó`} ·{' '}
+                    {hora(ficha.vistoEn)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-proceso" />
+                  <span className="text-gris">
+                    {asignado.id === yo.id
+                      ? 'Todavía no confirmas'
+                      : `${asignado.nombre} no ha confirmado`}
+                  </span>
+                </>
+              )}
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-3.5 rounded-2xl border border-borde bg-white p-4">
@@ -262,15 +314,27 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
                     </span>
                     <span className="text-[11px] text-gris-claro">{hora(c.creadoEn)}</span>
                   </div>
-                  <div
-                    className={`mt-1.5 px-3 py-2.5 text-[13.5px] leading-normal ${
-                      mio
-                        ? 'rounded-[14px_4px_14px_14px] bg-tinta text-papel'
-                        : 'rounded-[4px_14px_14px_14px] border border-borde bg-white text-tinta-suave'
-                    }`}
-                  >
-                    {c.texto}
-                  </div>
+                  {c.foto && (
+                    <a
+                      href={c.foto}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1.5 block overflow-hidden rounded-[14px] border border-borde"
+                    >
+                      <img src={c.foto} alt="Foto del comentario" className="w-full" />
+                    </a>
+                  )}
+                  {c.texto && (
+                    <div
+                      className={`mt-1.5 px-3 py-2.5 text-[13.5px] leading-normal ${
+                        mio
+                          ? 'rounded-[14px_4px_14px_14px] bg-tinta text-papel'
+                          : 'rounded-[4px_14px_14px_14px] border border-borde bg-white text-tinta-suave'
+                      }`}
+                    >
+                      {c.texto}
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -279,10 +343,46 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
       </div>
 
       <div className="flex shrink-0 flex-col gap-2.5 border-t border-borde bg-lienzo px-5 pt-3 pb-5">
+        {foto && (
+          <div className="flex items-center gap-2.5 rounded-xl border border-borde bg-white p-2">
+            <img
+              src={URL.createObjectURL(foto)}
+              alt=""
+              className="h-11 w-11 shrink-0 rounded-lg object-cover"
+            />
+            <span className="grow truncate text-[12.5px] text-gris">{foto.name}</span>
+            <button
+              type="button"
+              onClick={() => setFoto(null)}
+              className="shrink-0 cursor-pointer px-2 text-[12.5px] text-gris underline underline-offset-4"
+            >
+              Quitar
+            </button>
+          </div>
+        )}
+
         <form
           onSubmit={enviar}
-          className="flex items-center gap-2 rounded-full border border-borde bg-white py-1 pr-1 pl-4"
+          className="flex items-center gap-1 rounded-full border border-borde bg-white py-1 pr-1 pl-1"
         >
+          <label
+            htmlFor="foto"
+            aria-label="Adjuntar foto"
+            className="inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-full text-gris"
+          >
+            <Icono.Foto tam={19} grosor={1.9} />
+          </label>
+          <input
+            id="foto"
+            name="foto"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              setFoto(e.target.files?.[0] || null)
+              e.target.value = '' // deja volver a elegir la misma foto
+            }}
+          />
           <label htmlFor="comentario" className="sr-only">
             Escribe un comentario
           </label>
@@ -298,7 +398,7 @@ export default function Detalle({ ficha, yo, ahora, onVolver, onCambiarEstado, o
             type="submit"
             aria-label="Enviar comentario"
             className="inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-tinta text-white disabled:opacity-40"
-            disabled={!borrador.trim()}
+            disabled={!borrador.trim() && !foto}
           >
             <Icono.Enviar tam={17} grosor={2} />
           </button>

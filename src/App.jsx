@@ -55,7 +55,7 @@ export default function App() {
   }, [])
 
   const miId = hayBackend ? sesion?.user?.id : demoId
-  const { listo, error, personas, fichas, actividad, cambiarEstado, comentar, crear } =
+  const { listo, error, personas, fichas, actividad, cambiarEstado, comentar, confirmar, crear } =
     useDatos(miId, hayBackend ? sesion?.user : null)
 
   // Las preferencias de aviso viven en la base: así valen en cualquier
@@ -127,9 +127,14 @@ export default function App() {
     cambiarEstado(id, estado)
   }
 
-  function alComentar(id, texto) {
+  function alComentar(id, texto, archivo) {
     avisarA(fichas.find((f) => f.id === id))
-    comentar(id, texto)
+    comentar(id, texto, archivo)
+  }
+
+  function alConfirmar(id) {
+    avisarA(fichas.find((f) => f.id === id))
+    confirmar(id)
   }
 
   function alCrear(datos) {
@@ -213,6 +218,7 @@ export default function App() {
             onVolver={() => setVista('mios')}
             onCambiarEstado={alCambiarEstado}
             onComentar={alComentar}
+            onConfirmar={alConfirmar}
           />
         )}
 

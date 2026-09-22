@@ -153,11 +153,32 @@ export function useDatos(miId, usuario) {
     [apuntarDemo, recargar],
   )
 
-  const comentar = useCallback(
-    async (fichaId, texto) => {
+  /** "Ahí estaré": solo para juntas. */
+  const confirmar = useCallback(
+    async (id) => {
       if (hayBackend) {
         try {
-          const nuevo = await api.agregarComentario(fichaId, miId, texto)
+          const actualizada = await api.confirmarJunta(id)
+          setFichas((prev) => prev.map((f) => (f.id === id ? actualizada : f)))
+          avisar(id, 'visto')
+        } catch (e) {
+          setError(e.message)
+        }
+        return
+      }
+      setFichas((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, vistoEn: new Date().toISOString() } : f)),
+      )
+    },
+    [],
+  )
+
+  const comentar = useCallback(
+    async (fichaId, texto, archivo = null) => {
+      if (hayBackend) {
+        try {
+          const foto = archivo ? await api.subirFoto(archivo) : null
+          const nuevo = await api.agregarComentario(fichaId, miId, texto, foto)
           setFichas((prev) =>
             prev.map((f) =>
               f.id === fichaId ? { ...f, comentarios: [...f.comentarios, nuevo] } : f,
@@ -180,7 +201,13 @@ export function useDatos(miId, usuario) {
             ...f,
             comentarios: [
               ...f.comentarios,
-              { id: `c${Date.now()}`, autorId: miId, texto, creadoEn: new Date().toISOString() },
+              {
+                id: `c${Date.now()}`,
+                autorId: miId,
+                texto,
+                foto: archivo ? URL.createObjectURL(archivo) : null,
+                creadoEn: new Date().toISOString(),
+              },
             ],
           }
         }),
@@ -221,5 +248,5 @@ export function useDatos(miId, usuario) {
     [apuntarDemo, recargar],
   )
 
-  return { listo, error, personas, fichas, actividad, cambiarEstado, comentar, crear }
+  return { listo, error, personas, fichas, actividad, cambiarEstado, comentar, confirmar, crear }
 }
