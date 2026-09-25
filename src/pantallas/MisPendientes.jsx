@@ -17,7 +17,7 @@ function esHoy(iso) {
   return a.toDateString() === b.toDateString()
 }
 
-export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
+export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo, onImportar }) {
   const [filtro, setFiltro] = useState('todos')
   const [verAnteriores, setVerAnteriores] = useState(false)
 
@@ -135,13 +135,21 @@ export default function MisPendientes({ fichas, yo, ahora, onAbrir, onNuevo }) {
         )}
       </div>
 
-      <div className="shrink-0 px-5 pt-3.5 pb-2.5">
+      <div className="flex shrink-0 gap-2 px-5 pt-3.5 pb-2.5">
         <button
           type="button"
           onClick={onNuevo}
-          className="w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
+          className="grow cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white"
         >
           Nuevo pendiente
+        </button>
+        <button
+          type="button"
+          onClick={onImportar}
+          aria-label="Sacar pendientes de las notas de una junta"
+          className="inline-flex w-[56px] shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-borde bg-white text-tinta-suave"
+        >
+          <Icono.Notas tam={20} grosor={1.9} />
         </button>
       </div>
     </>

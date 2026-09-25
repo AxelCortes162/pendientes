@@ -80,6 +80,12 @@ export const Icono = {
   Mas: (p) => (
     <Svg {...p}><path d="M12 5v14" /><path d="M5 12h14" /></Svg>
   ),
+  Notas: (p) => (
+    <Svg {...p}>
+      <path d="M5 4h11l3 3v13H5z" /><path d="M15 4v4h4" />
+      <path d="M8 12h8" /><path d="M8 16h5" />
+    </Svg>
+  ),
   Foto: (p) => (
     <Svg {...p}>
       <rect x="3" y="6" width="18" height="14" rx="2.5" />

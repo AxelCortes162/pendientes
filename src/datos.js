@@ -275,3 +275,33 @@ export function segundosVividos(ficha, ahora = Date.now()) {
   if (ficha.estado !== 'proceso' || !ficha.iniciadoEn) return base
   return base + Math.floor((ahora - new Date(ficha.iniciadoEn).getTime()) / 1000)
 }
+
+/* ---------- Importar de una junta ---------- */
+
+/** "2026-09-24" + "10:00" -> ISO local. Sin día no hay fecha que valga. */
+export function aISO(dia, hora, horaPorDefecto = '18:00') {
+  if (!dia) return null
+  const d = new Date(`${dia}T${hora || horaPorDefecto}:00`)
+  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+}
+
+/** Lo que devolvió el servidor, convertido a una ficha que la app entiende. */
+export function aFicha(item, yoId, otroId) {
+  const inicia = aISO(item.fecha, item.hora, '10:00')
+  // Una junta sin hora no es junta: no tiene dónde caer en el calendario.
+  const esJunta = item.tipo === 'junta' && Boolean(inicia)
+
+  return {
+    tipo: esJunta ? 'junta' : 'pendiente',
+    titulo: item.titulo.trim().slice(0, 200),
+    nota: (item.nota || '').trim(),
+    estado: 'pendiente',
+    prioridad: 'normal',
+    creadorId: yoId,
+    asignadoId: item.para === 'otro' && otroId ? otroId : yoId,
+    venceEn: esJunta ? null : aISO(item.fecha, item.hora),
+    iniciaEn: esJunta ? inicia : null,
+    terminaEn: esJunta ? new Date(new Date(inicia).getTime() + 3600000).toISOString() : null,
+    alCalendario: true,
+  }
+}

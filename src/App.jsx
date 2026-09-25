@@ -10,6 +10,7 @@ import Detalle from './pantallas/Detalle.jsx'
 import Equipo from './pantallas/Equipo.jsx'
 import Actividad from './pantallas/Actividad.jsx'
 import Nuevo from './pantallas/Nuevo.jsx'
+import Importar from './pantallas/Importar.jsx'
 
 /**
  * Tiene que vivir FUERA de App.
@@ -41,6 +42,16 @@ export default function App() {
     silencio: false,
   })
   const [aviso, setAviso] = useState(null)
+
+  // Lo que llega por el botón "Compartir" de Android (share_target del manifest).
+  // Se lee una sola vez y se limpia la URL para no reabrir la pantalla al recargar.
+  const [compartido] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    const p = new URLSearchParams(window.location.search)
+    const t = [p.get('title'), p.get('text'), p.get('url')].filter(Boolean).join('\n')
+    if (t) window.history.replaceState({}, '', window.location.pathname)
+    return t
+  })
   const [ahora, setAhora] = useState(Date.now())
 
   // Sesión: al abrir, y cada vez que alguien entra o sale
@@ -145,6 +156,14 @@ export default function App() {
     setVista(datos.asignadoId === miId ? 'mios' : 'equipo')
   }
 
+  async function alImportar(lista) {
+    for (const datos of lista) await crear(datos)
+    setAviso({
+      texto: lista.length === 1 ? 'Pendiente creado' : `${lista.length} pendientes creados`,
+    })
+    setVista('mios')
+  }
+
   function abrir(id) {
     setFichaId(id)
     setVista('detalle')
@@ -186,6 +205,7 @@ export default function App() {
             ahora={ahora}
             onAbrir={abrir}
             onNuevo={() => setVista('nuevo')}
+            onImportar={() => setVista('importar')}
           />
         )}
 
@@ -219,6 +239,15 @@ export default function App() {
             onCambiarEstado={alCambiarEstado}
             onComentar={alComentar}
             onConfirmar={alConfirmar}
+          />
+        )}
+
+        {vista === 'importar' && (
+          <Importar
+            yo={yo}
+            textoInicial={compartido}
+            onCancelar={() => setVista('mios')}
+            onCrear={alImportar}
           />
         )}
 
