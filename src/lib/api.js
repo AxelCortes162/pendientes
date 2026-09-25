@@ -187,6 +187,10 @@ export async function cambiarEstado(id, estado) {
   return deFila(fila)
 }
 
+export async function borrarFicha(id) {
+  revisar(await supabase.from('fichas').delete().eq('id', id))
+}
+
 /** Marca "ahí estaré" en una junta. */
 export async function confirmarJunta(id) {
   const fila = revisar(

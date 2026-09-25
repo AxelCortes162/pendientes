@@ -153,6 +153,21 @@ export function useDatos(miId, usuario) {
     [apuntarDemo, recargar],
   )
 
+  /** Se va y no vuelve: los comentarios se borran con ella (cascada). */
+  const borrar = useCallback(
+    async (id) => {
+      setFichas((prev) => prev.filter((f) => f.id !== id))
+      if (!hayBackend) return
+      try {
+        await api.borrarFicha(id)
+      } catch (e) {
+        setError(e.message)
+        recargar() // si no se borró, que vuelva a aparecer
+      }
+    },
+    [recargar],
+  )
+
   /** "Ahí estaré": solo para juntas. */
   const confirmar = useCallback(
     async (id) => {
@@ -248,5 +263,16 @@ export function useDatos(miId, usuario) {
     [apuntarDemo, recargar],
   )
 
-  return { listo, error, personas, fichas, actividad, cambiarEstado, comentar, confirmar, crear }
+  return {
+    listo,
+    error,
+    personas,
+    fichas,
+    actividad,
+    borrar,
+    cambiarEstado,
+    comentar,
+    confirmar,
+    crear,
+  }
 }

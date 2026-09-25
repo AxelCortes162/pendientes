@@ -1,0 +1,15 @@
+# Worker de Cloudflare que recibe el correo y se lo pasa a la app.
+#
+# Se despliega aparte del resto del proyecto:
+#   cd correo && npm install && npx wrangler deploy
+#
+# El secreto NO va aquí (esto se sube a git). Se guarda con:
+#   npx wrangler secret put CORREO_SECRETO
+
+name = "pendientes-correo"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# El endpoint de la app en Vercel.
+URL_PENDIENTES = "https://pendientes-tau.vercel.app/api/correo"

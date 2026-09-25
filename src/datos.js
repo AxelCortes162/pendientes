@@ -278,16 +278,22 @@ export function segundosVividos(ficha, ahora = Date.now()) {
 
 /* ---------- Importar de una junta ---------- */
 
-/** "2026-09-24" + "10:00" -> ISO local. Sin día no hay fecha que valga. */
-export function aISO(dia, hora, horaPorDefecto = '18:00') {
+/**
+ * "2026-09-24" + "10:00" -> ISO. Sin día no hay fecha que valga.
+ *
+ * `zona` es el desfase que se le pega a la hora ('-06:00'). En el teléfono se
+ * deja vacío y el navegador usa la hora local, que es la correcta. En el
+ * servidor no: Vercel corre en UTC y "las 10" se volverían las 4 de la mañana.
+ */
+export function aISO(dia, hora, horaPorDefecto = '18:00', zona = '') {
   if (!dia) return null
-  const d = new Date(`${dia}T${hora || horaPorDefecto}:00`)
+  const d = new Date(`${dia}T${hora || horaPorDefecto}:00${zona}`)
   return Number.isNaN(d.getTime()) ? null : d.toISOString()
 }
 
 /** Lo que devolvió el servidor, convertido a una ficha que la app entiende. */
-export function aFicha(item, yoId, otroId) {
-  const inicia = aISO(item.fecha, item.hora, '10:00')
+export function aFicha(item, yoId, otroId, zona = '') {
+  const inicia = aISO(item.fecha, item.hora, '10:00', zona)
   // Una junta sin hora no es junta: no tiene dónde caer en el calendario.
   const esJunta = item.tipo === 'junta' && Boolean(inicia)
 
@@ -299,7 +305,7 @@ export function aFicha(item, yoId, otroId) {
     prioridad: 'normal',
     creadorId: yoId,
     asignadoId: item.para === 'otro' && otroId ? otroId : yoId,
-    venceEn: esJunta ? null : aISO(item.fecha, item.hora),
+    venceEn: esJunta ? null : aISO(item.fecha, item.hora, '18:00', zona),
     iniciaEn: esJunta ? inicia : null,
     terminaEn: esJunta ? new Date(new Date(inicia).getTime() + 3600000).toISOString() : null,
     alCalendario: true,

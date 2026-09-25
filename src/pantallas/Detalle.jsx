@@ -61,6 +61,7 @@ export default function Detalle({
   onCambiarEstado,
   onComentar,
   onConfirmar,
+  onBorrar,
 }) {
   const [borrador, setBorrador] = useState('')
   const [foto, setFoto] = useState(null)
@@ -291,6 +292,19 @@ export default function Detalle({
             </div>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={() => {
+            // Se lleva los comentarios por delante: mejor preguntar.
+            if (window.confirm(`¿Borrar «${ficha.titulo}»? No se puede deshacer.`)) {
+              onBorrar(ficha.id)
+            }
+          }}
+          className="cursor-pointer self-start px-0.5 py-1 text-[12.5px] text-gris underline decoration-borde underline-offset-4"
+        >
+          Borrar
+        </button>
 
         <Separador>Comentarios</Separador>
 

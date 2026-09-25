@@ -31,3 +31,7 @@ dist-ssr
 
 # Llaves VAPID (la privada es secreta)
 .vapid.json
+
+# Worker de correo
+correo/node_modules
+correo/.wrangler

@@ -59,4 +59,18 @@ assert.equal(yaPaso({ tipo: 'pendiente', venceEn: ayer }), false, 'un pendiente 
 assert.equal(cerroEn({ tipo: 'junta', terminaEn: ayer }), ayer)
 assert.equal(cerroEn({ tipo: 'pendiente', actualizadoEn: ayer }), ayer)
 
+/* ---------- la zona horaria del servidor no debe mover la hora ---------- */
+// Vercel corre en UTC: sin el desfase, "las 10" se volverían las 4 a.m.
+assert.equal(aISO('2026-09-24', '10:00', '18:00', '-06:00'), '2026-09-24T16:00:00.000Z')
+assert.equal(
+  aFicha({ ...base, tipo: 'junta', fecha: '2026-09-24', hora: '10:00' }, YO, OTRO, '-06:00')
+    .iniciaEn,
+  '2026-09-24T16:00:00.000Z',
+)
+assert.equal(
+  aFicha({ ...base, fecha: '2026-09-24' }, YO, OTRO, '-06:00').venceEn,
+  '2026-09-25T00:00:00.000Z',
+  'la hora límite por defecto son las 18:00 de México',
+)
+
 console.log('todo bien')

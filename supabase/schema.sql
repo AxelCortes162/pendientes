@@ -257,8 +257,8 @@ create policy "creo fichas a mi nombre" on fichas
 create policy "edito mis fichas" on fichas
   for update using (auth.uid() in (creador_id, asignado_id));
 
-create policy "borro lo que creé" on fichas
-  for delete using (auth.uid() = creador_id);
+create policy "borro mis fichas" on fichas
+  for delete using (auth.uid() in (creador_id, asignado_id));
 
 -- ¿Soy parte de esta ficha? SECURITY DEFINER para que la consulta a `fichas`
 -- no vuelva a pasar por RLS dentro de otra política: anidado así, el EXISTS

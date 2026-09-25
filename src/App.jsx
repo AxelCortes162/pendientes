@@ -66,8 +66,18 @@ export default function App() {
   }, [])
 
   const miId = hayBackend ? sesion?.user?.id : demoId
-  const { listo, error, personas, fichas, actividad, cambiarEstado, comentar, confirmar, crear } =
-    useDatos(miId, hayBackend ? sesion?.user : null)
+  const {
+    listo,
+    error,
+    personas,
+    fichas,
+    actividad,
+    borrar,
+    cambiarEstado,
+    comentar,
+    confirmar,
+    crear,
+  } = useDatos(miId, hayBackend ? sesion?.user : null)
 
   // Las preferencias de aviso viven en la base: así valen en cualquier
   // dispositivo donde entres, no solo en este.
@@ -164,6 +174,12 @@ export default function App() {
     setVista('mios')
   }
 
+  function alBorrar(id) {
+    borrar(id)
+    setAviso({ texto: 'Pendiente borrado' })
+    setVista('mios')
+  }
+
   function abrir(id) {
     setFichaId(id)
     setVista('detalle')
@@ -239,6 +255,7 @@ export default function App() {
             onCambiarEstado={alCambiarEstado}
             onComentar={alComentar}
             onConfirmar={alConfirmar}
+            onBorrar={alBorrar}
           />
         )}
 
