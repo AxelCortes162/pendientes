@@ -320,6 +320,20 @@ export function proximoDia(dia, hoyISO) {
 }
 
 /**
+ * ¿Las notas traen una fecha escrita con número ("5 de octubre", "15/10")?
+ *
+ * Es el permiso para creerle al modelo cuando devuelve una fecha. Si las
+ * notas solo dicen "el viernes" y aun así devolvió un 2026-10-03, esa fecha
+ * la calculó él —y calculando se equivoca—, así que se tira.
+ */
+export function hayFechaEscrita(texto) {
+  const t = normalizar(texto)
+  if (/\d{1,2}\s*[/-]\s*\d{1,2}/.test(t)) return true
+  const meses = MESES.map((m) => normalizar(m)).join('|')
+  return new RegExp(`(\\d{1,2}\\s+de\\s+(${meses})|(${meses})\\s+\\d{1,2})`).test(t)
+}
+
+/**
  * El nombre que devolvió el modelo, contra la gente que existe de verdad.
  * Devuelve "Makareno" -> el perfil "Francisco Makareno": el modelo escribe
  * como escribiría una persona, no como está en la base.

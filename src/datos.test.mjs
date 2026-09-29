@@ -4,7 +4,15 @@
 // pendiente asignado a quien no era.
 
 import assert from 'node:assert/strict'
-import { aFicha, aISO, buscarPersona, cerroEn, proximoDia, yaPaso } from './datos.js'
+import {
+  aFicha,
+  aISO,
+  buscarPersona,
+  cerroEn,
+  hayFechaEscrita,
+  proximoDia,
+  yaPaso,
+} from './datos.js'
 
 const YO = 'yo-1'
 const OTRO = 'otro-2'
@@ -101,5 +109,15 @@ assert.equal(buscarPersona('Fco. Makareno', EQUIPO)?.id, 'm', 'nombre a medias')
 assert.equal(buscarPersona('Daniel', EQUIPO), null, 'alguien que no existe no empata')
 assert.equal(buscarPersona('', EQUIPO), null)
 assert.equal(buscarPersona('Axel', []), null)
+
+/* ---------- ¿la nota trae una fecha escrita? ---------- */
+// El permiso para creerle una fecha al modelo.
+assert.equal(hayFechaEscrita('Nos vemos el viernes a las 10'), false, 'un día no es una fecha')
+assert.equal(hayFechaEscrita('Entregar antes del 5 de octubre'), true)
+assert.equal(hayFechaEscrita('Entregar el 5 de Octubre'), true, 'con mayúscula igual')
+assert.equal(hayFechaEscrita('La junta es el 15/10 a las 9'), true)
+assert.equal(hayFechaEscrita('Revisar octubre 5'), true)
+assert.equal(hayFechaEscrita('Mandar los 24 iconos del set'), false, 'un número suelto no es fecha')
+assert.equal(hayFechaEscrita(''), false)
 
 console.log('todo bien')

@@ -5,7 +5,7 @@
 // igual.
 
 import Anthropic from '@anthropic-ai/sdk'
-import { buscarPersona, proximoDia } from '../src/datos.js'
+import { buscarPersona, hayFechaEscrita, proximoDia } from '../src/datos.js'
 
 const MODELO = process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5'
 
@@ -21,7 +21,7 @@ Reglas:
 - El título va en imperativo y corto, máximo 80 caracteres: "Exportar los iconos a SVG", no "Se acordó que Axel exportará los iconos".
 - La nota lleva el detalle necesario para trabajarlo, en una o dos frases. Si no hay detalle, déjala vacía.
 - Si la nota menciona una reunión futura con día y hora, eso es tipo "junta", no "pendiente".
-- Cuándo: NO calcules fechas. Solo reporta lo que dice la nota.
+- Cuándo: NUNCA conviertas un día de la semana en fecha. La app lo hace sola, y si tú escribes una fecha que la nota no trae con número, se descarta.
   · Si dice un día ("el miércoles", "antes del viernes", "mañana"), ponlo tal cual en "dia_semana" y deja "fecha" en null.
   · Si dice una fecha completa ("el 5 de octubre"), ponla en "fecha" como YYYY-MM-DD y deja "dia_semana" vacío.
   · Si no dice nada de cuándo, los dos vacíos.
@@ -128,9 +128,15 @@ export async function leerPendientes(texto, personas = [], autorId = null) {
   // otro lado: el día de la semana en fecha, y el nombre en persona. Si no
   // se le atina a nadie, se queda con quien escribió las notas: es mejor que
   // le llegue a quien la mandó que a la persona equivocada.
+  // Solo se le cree una fecha si las notas la traen escrita con número.
+  // Si no, la sacó de su cabeza y sale corrida un día.
+  const traeFecha = hayFechaEscrita(texto)
+
   return pendientes.map((item) => ({
     ...item,
-    fecha: item.dia_semana ? proximoDia(item.dia_semana, hoy) : item.fecha || null,
+    fecha: item.dia_semana
+      ? proximoDia(item.dia_semana, hoy)
+      : (traeFecha && item.fecha) || null,
     paraId: buscarPersona(item.para, personas)?.id || autorId,
   }))
 }
