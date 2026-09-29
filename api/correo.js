@@ -65,20 +65,14 @@ export default async function handler(req, res) {
     }
 
     const { data: perfiles } = await admin.from('perfiles').select('id, nombre')
-    const yo = perfiles?.find((p) => p.id === autorId)
-    const otro = perfiles?.find((p) => p.id !== autorId)
-
-    const pendientes = await leerPendientes(texto.slice(0, LIMITE), {
-      yo: yo?.nombre,
-      otro: otro?.nombre,
-    })
+    const pendientes = await leerPendientes(texto.slice(0, LIMITE), perfiles || [], autorId)
     if (pendientes.length === 0) {
       return res.status(200).json({ creados: 0, motivo: 'no encontré pendientes' })
     }
 
     const titulo = asunto.trim().slice(0, 120)
     const filas = pendientes.map((item) => {
-      const f = aFicha(item, autorId, otro?.id, ZONA)
+      const f = aFicha(item, autorId, ZONA)
       return {
         tipo: f.tipo,
         titulo: f.titulo,

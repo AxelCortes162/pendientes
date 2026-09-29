@@ -291,8 +291,11 @@ export function aISO(dia, hora, horaPorDefecto = '18:00', zona = '') {
   return Number.isNaN(d.getTime()) ? null : d.toISOString()
 }
 
-/** Lo que devolvió el servidor, convertido a una ficha que la app entiende. */
-export function aFicha(item, yoId, otroId, zona = '') {
+/**
+ * Lo que devolvió el servidor, convertido a una ficha que la app entiende.
+ * `item.paraId` ya viene resuelto por el servidor; `yoId` es el respaldo.
+ */
+export function aFicha(item, yoId, zona = '') {
   const inicia = aISO(item.fecha, item.hora, '10:00', zona)
   // Una junta sin hora no es junta: no tiene dónde caer en el calendario.
   const esJunta = item.tipo === 'junta' && Boolean(inicia)
@@ -304,7 +307,7 @@ export function aFicha(item, yoId, otroId, zona = '') {
     estado: 'pendiente',
     prioridad: 'normal',
     creadorId: yoId,
-    asignadoId: item.para === 'otro' && otroId ? otroId : yoId,
+    asignadoId: item.paraId || yoId,
     venceEn: esJunta ? null : aISO(item.fecha, item.hora, '18:00', zona),
     iniciaEn: esJunta ? inicia : null,
     terminaEn: esJunta ? new Date(new Date(inicia).getTime() + 3600000).toISOString() : null,

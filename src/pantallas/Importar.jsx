@@ -11,7 +11,13 @@ export default function Importar({ yo, textoInicial = '', onCancelar, onCrear })
   const [error, setError] = useState(null)
   const [items, setItems] = useState(null)
 
-  const otro = Object.values(personas).find((p) => p.id !== yo.id)
+  const equipo = Object.values(personas)
+
+  /** El botón del avatar va rotando entre todas las personas del equipo. */
+  function siguiente(id) {
+    const i = equipo.findIndex((p) => p.id === id)
+    return equipo[(i + 1) % equipo.length].id
+  }
   const elegidos = items?.filter((i) => i.elegido) || []
 
   async function leer() {
@@ -32,7 +38,7 @@ export default function Importar({ yo, textoInicial = '', onCancelar, onCrear })
   }
 
   function crear() {
-    onCrear(elegidos.map((i) => aFicha(i, yo.id, otro?.id)))
+    onCrear(elegidos.map((i) => aFicha(i, yo.id)))
   }
 
   return (
@@ -96,7 +102,7 @@ export default function Importar({ yo, textoInicial = '', onCancelar, onCrear })
             <Separador>{items.length} encontrados</Separador>
 
             {items.map((item, i) => {
-              const ficha = aFicha(item, yo.id, otro?.id)
+              const ficha = aFicha(item, yo.id)
               const cuando =
                 ficha.tipo === 'junta'
                   ? textoJunta(ficha.iniciaEn)
@@ -149,10 +155,11 @@ export default function Importar({ yo, textoInicial = '', onCancelar, onCrear })
                         )}
                         <span>{cuando}</span>
                         <span className="grow" />
-                        {otro && (
+                        {equipo.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => cambiar(i, { para: item.para === 'otro' ? 'yo' : 'otro' })}
+                            onClick={() => cambiar(i, { paraId: siguiente(ficha.asignadoId) })}
+                            aria-label={`Cambiar a quién le toca (ahora ${para.nombre})`}
                             className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-borde py-0.5 pr-2.5 pl-0.5"
                           >
                             <Avatar persona={para} tam={20} oscuro />

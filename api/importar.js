@@ -30,13 +30,7 @@ export default async function handler(req, res) {
     if (errAuth || !auth?.user) return res.status(401).json({ error: 'Token inválido' })
 
     const { data: perfiles } = await admin.from('perfiles').select('id, nombre')
-    const yo = perfiles?.find((p) => p.id === auth.user.id)
-    const otro = perfiles?.find((p) => p.id !== auth.user.id)
-
-    const pendientes = await leerPendientes(texto, {
-      yo: yo?.nombre,
-      otro: otro?.nombre,
-    })
+    const pendientes = await leerPendientes(texto, perfiles || [], auth.user.id)
 
     return res.status(200).json({ pendientes })
   } catch (e) {
