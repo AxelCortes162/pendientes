@@ -4,7 +4,7 @@
 // pendiente asignado a quien no era.
 
 import assert from 'node:assert/strict'
-import { aFicha, aISO, cerroEn, yaPaso } from './datos.js'
+import { aFicha, aISO, buscarPersona, cerroEn, proximoDia, yaPaso } from './datos.js'
 
 const YO = 'yo-1'
 const OTRO = 'otro-2'
@@ -72,5 +72,34 @@ assert.equal(
   '2026-09-25T00:00:00.000Z',
   'la hora límite por defecto son las 18:00 de México',
 )
+
+/* ---------- el día de la semana lo calcula el código, no el modelo ------- */
+// 2026-09-29 es martes.
+const MARTES = '2026-09-29'
+assert.equal(proximoDia('miércoles', MARTES), '2026-09-30', 'mañana mismo')
+assert.equal(proximoDia('miercoles', MARTES), '2026-09-30', 'sin acento también')
+assert.equal(proximoDia('VIERNES', MARTES), '2026-10-02')
+assert.equal(proximoDia('lunes', MARTES), '2026-10-05', 'cruza la semana')
+assert.equal(proximoDia('martes', MARTES), '2026-10-06', 'el mismo día es el de la otra semana')
+assert.equal(proximoDia('hoy', MARTES), MARTES)
+assert.equal(proximoDia('mañana', MARTES), '2026-09-30')
+assert.equal(proximoDia('', MARTES), null)
+assert.equal(proximoDia('el jueves que viene', MARTES), null, 'lo que no entiende, no lo inventa')
+// Cruzar de mes y de año no debe correr nada.
+assert.equal(proximoDia('viernes', '2026-12-31'), '2027-01-01')
+
+/* ---------- el nombre del modelo contra la gente real ---------- */
+const EQUIPO = [
+  { id: 'a', nombre: 'Axel' },
+  { id: 'm', nombre: 'Francisco Makareno' },
+]
+assert.equal(buscarPersona('Axel', EQUIPO)?.id, 'a')
+assert.equal(buscarPersona('Francisco Makareno', EQUIPO)?.id, 'm')
+assert.equal(buscarPersona('Makareno', EQUIPO)?.id, 'm', 'solo el apellido')
+assert.equal(buscarPersona('francisco', EQUIPO)?.id, 'm', 'sin mayúscula')
+assert.equal(buscarPersona('Fco. Makareno', EQUIPO)?.id, 'm', 'nombre a medias')
+assert.equal(buscarPersona('Daniel', EQUIPO), null, 'alguien que no existe no empata')
+assert.equal(buscarPersona('', EQUIPO), null)
+assert.equal(buscarPersona('Axel', []), null)
 
 console.log('todo bien')

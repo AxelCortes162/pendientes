@@ -278,6 +278,73 @@ export function segundosVividos(ficha, ahora = Date.now()) {
 
 /* ---------- Importar de una junta ---------- */
 
+/** "Miércoles" y "miercoles" son la misma palabra. */
+function normalizar(texto) {
+  return String(texto || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+const DIAS_NUMERO = {
+  domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6,
+}
+
+function sumarDias(iso, dias) {
+  const d = new Date(`${iso}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + dias)
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * "el miércoles" -> "2026-09-30", contando desde hoy.
+ *
+ * Esta cuenta NO se le deja al modelo. Dándole la fecha e incluso el día de
+ * la semana seguía fallando: mandó un pendiente a cinco días en el pasado.
+ * Él clasifica ("miércoles"), aquí se calcula.
+ */
+export function proximoDia(dia, hoyISO) {
+  const limpio = normalizar(dia)
+  if (!limpio) return null
+  if (limpio === 'hoy') return hoyISO
+  if (limpio === 'manana') return sumarDias(hoyISO, 1)
+
+  const objetivo = DIAS_NUMERO[limpio]
+  if (objetivo === undefined) return null
+
+  // Siempre hacia adelante, entre 1 y 7 días. Si hoy es miércoles y dicen
+  // "el miércoles", hablan del de la semana que entra.
+  const hoy = new Date(`${hoyISO}T12:00:00Z`).getUTCDay()
+  return sumarDias(hoyISO, ((objetivo - hoy + 6) % 7) + 1)
+}
+
+/**
+ * El nombre que devolvió el modelo, contra la gente que existe de verdad.
+ * Devuelve "Makareno" -> el perfil "Francisco Makareno": el modelo escribe
+ * como escribiría una persona, no como está en la base.
+ */
+export function buscarPersona(nombre, personas = []) {
+  const n = normalizar(nombre)
+  if (!n) return null
+
+  return (
+    personas.find((p) => normalizar(p.nombre) === n) ||
+    personas.find((p) => normalizar(p.nombre).split(/\s+/).includes(n)) ||
+    personas.find((p) => {
+      const q = normalizar(p.nombre)
+      return q.length > 2 && (q.includes(n) || n.includes(q))
+    }) ||
+    // "Fco. Makareno": basta con que comparta una palabra
+    personas.find((p) => {
+      const suyas = normalizar(p.nombre).split(/\s+/).filter((t) => t.length > 2)
+      const buscadas = n.split(/\s+/).filter((t) => t.length > 2)
+      return suyas.some((t) => buscadas.includes(t))
+    }) ||
+    null
+  )
+}
+
 /**
  * "2026-09-24" + "10:00" -> ISO. Sin día no hay fecha que valga.
  *
