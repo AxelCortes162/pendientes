@@ -1,17 +1,17 @@
-// POST /api/correo   { de, asunto, texto, autenticado }
-// Cabecera: x-correo-secreto: <CORREO_SECRETO>
+// POST /api/correo?secreto=<CORREO_SECRETO>
 //
 // La puerta automática: llegan las notas de una junta por correo, se leen y
 // los pendientes se crean solos, cada uno a nombre de quien le toca.
 //
-// Quien llama es el Worker de Cloudflare (carpeta correo/), no un navegador.
-// Por eso la puerta se cierra con tres cerrojos:
-//   1. el secreto compartido,
-//   2. el remitente tiene que ser una de las dos cuentas de la app,
-//   3. el correo tiene que venir con SPF o DKIM válido (lo verifica el Worker).
+// Quien llama es SendGrid (Inbound Parse), no un navegador. Por eso la
+// puerta se cierra con tres cerrojos:
+//   1. el secreto, que va en la URL que solo conoce SendGrid,
+//   2. el remitente tiene que ser una de las cuentas de la app,
+//   3. el correo tiene que traer SPF o DKIM en "pass".
 
 import { clienteAdmin, enviarA } from './_comun.js'
 import { Anthropic, LIMITE, leerPendientes } from './_lectura.js'
+import { abrirSobre } from './_correo-entrante.js'
 import { aFicha } from '../src/datos.js'
 
 // CDMX ya no cambia de horario, así que un desfase fijo alcanza.
@@ -40,14 +40,15 @@ export default async function handler(req, res) {
     console.error('correo: falta CORREO_SECRETO')
     return res.status(500).json({ error: 'Sin configurar' })
   }
-  if (req.headers['x-correo-secreto'] !== secreto) {
+  // SendGrid no firma sus llamadas: el secreto viaja en la URL que solo él
+  // conoce. Se acepta también por cabecera, que es más limpio para probar.
+  const url = new URL(req.url, 'http://x')
+  if (url.searchParams.get('secreto') !== secreto && req.headers['x-correo-secreto'] !== secreto) {
     return res.status(401).json({ error: 'No' })
   }
 
   try {
-    const cuerpo = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
-    const { de, asunto = '', autenticado } = cuerpo
-    const texto = typeof cuerpo.texto === 'string' ? cuerpo.texto.trim() : ''
+    const { de, asunto, texto, autenticado } = await abrirSobre(req)
 
     // El "De" de un correo se falsifica en dos minutos. Sin SPF ni DKIM
     // válidos no hay manera de saber quién lo mandó, así que no se abre.
