@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { entrar, registrarse } from '../lib/api.js'
+import { entrar, pedirRecuperacion, registrarse } from '../lib/api.js'
 
 // Correo y contraseña, a propósito.
 //
@@ -15,14 +15,22 @@ export default function Login() {
   const [nombre, setNombre] = useState('')
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
+  const [enviado, setEnviado] = useState(false)
 
   const registrando = modo === 'registrar'
+  const olvidada = modo === 'olvide'
 
   async function enviar(e) {
     e.preventDefault()
     setError(null)
     setCargando(true)
     try {
+      if (olvidada) {
+        await pedirRecuperacion(correo.trim())
+        setEnviado(true)
+        setCargando(false)
+        return
+      }
       if (registrando) {
         await registrarse(correo.trim(), contrasena, nombre.trim())
       } else {
@@ -36,16 +44,26 @@ export default function Login() {
   }
 
   const listo =
-    correo.includes('@') && contrasena.length >= 6 && (!registrando || nombre.trim().length > 0)
+    correo.includes('@') &&
+    (olvidada || contrasena.length >= 6) &&
+    (!registrando || nombre.trim().length > 0)
+
+  function cambiarA(siguiente) {
+    setModo(siguiente)
+    setError(null)
+    setEnviado(false)
+  }
 
   return (
     <div className="flex h-full flex-col justify-center px-7 pb-12">
       <div className="mb-10">
         <h1 className="font-display text-[44px] leading-none font-normal">Pendientes</h1>
         <p className="mt-2.5 text-[13.5px] leading-relaxed text-gris">
-          {registrando
-            ? 'Crea tu cuenta para empezar a recibir y mandar pendientes.'
-            : 'Entra para ver lo tuyo y lo del equipo.'}
+          {olvidada
+            ? 'Escribe tu correo y te mandamos un enlace para entrar y poner una contraseña nueva.'
+            : registrando
+              ? 'Crea tu cuenta para empezar a recibir y mandar pendientes.'
+              : 'Entra para ver lo tuyo y lo del equipo.'}
         </p>
       </div>
 
@@ -82,6 +100,7 @@ export default function Login() {
           />
         </div>
 
+        {!olvidada && (
         <div>
           <label htmlFor="contrasena" className="rotulo">
             Contraseña
@@ -96,6 +115,14 @@ export default function Login() {
             className="mt-1.5 w-full rounded-xl border border-borde bg-white px-3.5 py-3 text-[15px] outline-none focus:border-tinta"
           />
         </div>
+        )}
+
+        {enviado && (
+          <p className="rounded-xl bg-listo-fondo px-3.5 py-3 text-[13px] leading-relaxed text-listo-texto">
+            Listo. Revisa tu correo —y la carpeta de spam— y abre el enlace desde el
+            teléfono donde usas la app.
+          </p>
+        )}
 
         {error && (
           <p className="rounded-xl bg-proceso-fondo px-3.5 py-3 text-[13px] leading-relaxed text-proceso-texto">
@@ -108,20 +135,35 @@ export default function Login() {
           disabled={!listo || cargando}
           className="mt-2 w-full cursor-pointer rounded-2xl bg-tinta py-[15px] font-display text-[17px] tracking-wide text-white disabled:opacity-30"
         >
-          {cargando ? 'Un momento…' : registrando ? 'Crear cuenta' : 'Entrar'}
+          {cargando
+            ? 'Un momento…'
+            : olvidada
+              ? 'Mandar el enlace'
+              : registrando
+                ? 'Crear cuenta'
+                : 'Entrar'}
         </button>
       </form>
 
-      <button
-        type="button"
-        onClick={() => {
-          setModo(registrando ? 'entrar' : 'registrar')
-          setError(null)
-        }}
-        className="mt-6 cursor-pointer text-center text-[13px] text-gris underline decoration-borde underline-offset-4"
-      >
-        {registrando ? 'Ya tengo cuenta' : 'Crear una cuenta nueva'}
-      </button>
+      <div className="mt-6 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => cambiarA(olvidada || registrando ? 'entrar' : 'registrar')}
+          className="cursor-pointer text-center text-[13px] text-gris underline decoration-borde underline-offset-4"
+        >
+          {olvidada ? 'Volver a entrar' : registrando ? 'Ya tengo cuenta' : 'Crear una cuenta nueva'}
+        </button>
+
+        {modo === 'entrar' && (
+          <button
+            type="button"
+            onClick={() => cambiarA('olvide')}
+            className="cursor-pointer text-center text-[13px] text-gris-claro underline decoration-borde-suave underline-offset-4"
+          >
+            Olvidé mi contraseña
+          </button>
+        )}
+      </div>
     </div>
   )
 }

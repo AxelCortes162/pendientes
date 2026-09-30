@@ -91,6 +91,23 @@ export async function salir() {
   await supabase.auth.signOut()
 }
 
+/**
+ * Manda el correo con el enlace para volver a entrar.
+ * El enlace regresa a esta misma app; ahí App escucha el evento
+ * PASSWORD_RECOVERY y enseña la pantalla para escribir la nueva.
+ */
+export async function pedirRecuperacion(correo) {
+  revisar(
+    await supabase.auth.resetPasswordForEmail(correo, {
+      redirectTo: window.location.origin,
+    }),
+  )
+}
+
+export async function cambiarContrasena(nueva) {
+  revisar(await supabase.auth.updateUser({ password: nueva }))
+}
+
 /* ------------------------------------------------------------- lectura */
 
 /**

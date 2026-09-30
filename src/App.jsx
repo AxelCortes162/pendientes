@@ -5,6 +5,7 @@ import * as api from './lib/api.js'
 import { useDatos } from './lib/useDatos.js'
 import { PersonasProvider } from './lib/personas.jsx'
 import Login from './pantallas/Login.jsx'
+import NuevaContrasena from './pantallas/NuevaContrasena.jsx'
 import MisPendientes from './pantallas/MisPendientes.jsx'
 import Detalle from './pantallas/Detalle.jsx'
 import Equipo from './pantallas/Equipo.jsx'
@@ -31,6 +32,8 @@ function Marco({ children }) {
 export default function App() {
   const [sesion, setSesion] = useState(null)
   const [revisandoSesion, setRevisandoSesion] = useState(hayBackend)
+  // Abrió el enlace del correo: toca dejarle poner contraseña nueva.
+  const [recuperando, setRecuperando] = useState(false)
   const [demoId, setDemoId] = useState('axel')
 
   const [vista, setVista] = useState('mios')
@@ -61,7 +64,10 @@ export default function App() {
       setSesion(s)
       setRevisandoSesion(false)
     })
-    const { data } = supabase.auth.onAuthStateChange((_evento, s) => setSesion(s))
+    const { data } = supabase.auth.onAuthStateChange((evento, s) => {
+      setSesion(s)
+      if (evento === 'PASSWORD_RECOVERY') setRecuperando(true)
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -187,6 +193,14 @@ export default function App() {
 
   if (revisandoSesion) {
     return <Marco />
+  }
+
+  if (recuperando) {
+    return (
+      <Marco>
+        <NuevaContrasena onListo={() => setRecuperando(false)} />
+      </Marco>
+    )
   }
 
   if (hayBackend && !sesion) {
